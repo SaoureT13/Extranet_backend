@@ -12,14 +12,14 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 require '../services/scripts/php/core_transaction.php';
 include '../services/scripts/php/lib.php';
 
-// Permettre l'accès depuis n'importe quelle origine (CORS)
-header("Access-Control-Allow-Origin: *");
-
-// Autoriser les méthodes HTTP spécifiées
-header("Access-Control-Allow-Methods: POST");
-
-// Autoriser certains en-têtes HTTP
-header("Access-Control-Allow-Headers: Content-Type");
+//// Permettre l'accès depuis n'importe quelle origine (CORS)
+//header("Access-Control-Allow-Origin: *");
+//
+//// Autoriser les méthodes HTTP spécifiées
+//header("Access-Control-Allow-Methods: POST");
+//
+//// Autoriser certains en-têtes HTTP
+//header("Access-Control-Allow-Headers: Content-Type");
 
 $arrayJson = array();
 $OJson = array();
@@ -95,10 +95,7 @@ if ($mode == "listCommande") {
         $arrayJson["data"] = $value;
     }
 } else if ($mode == "getExternalClientPanier") {
-    $value = $CommandeManager->getExternalClientPanier($LG_AGEID, $LG_COMMID);
-    if ($value) {
-        $arrayJson["data"] = $value;
-    }
+    $arrayJson = $CommandeManager->getExternalClientPanier($LG_AGEID, $LG_COMMID);
 } else {
 
     if (isset($_REQUEST['STR_COMMNAME'])) {

@@ -229,43 +229,43 @@ class CommandeManager implements CommandeInterface
 
     public function showAllOrOneCommande($search_value, $LG_CLIID, $start, $limit)
     {
-        $ConfigurationManager = new ConfigurationManager();
-        $arraySql = array();
-        $token = "";
-        try {
-            $token = $ConfigurationManager->generateToken();
-
-            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts";
-
-            $headers = array(
-                'Accept: application/json',
-                'Content-Type: application/x-www-form-urlencoded',
-                "api_key: " . Parameters::$apikey,
-                "token: " . $token
-            );
-
-            // Initialisation de cURL
-            $ch = curl_init($url);
-
-            // Configuration de cURL
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-            $obj = json_decode($response);
-            //var_dump($obj);
-            // Vérifier si la conversion a réussi
-            if ($obj === null && json_last_error() !== JSON_ERROR_NONE) {
-                die('Erreur lors du décodage JSON');
-            }
-
-            $arraySql = $obj;
-        } catch (Exception $exc) {
-            error_log($exc->getTraceAsString());
-        }
-        return $arraySql;
+//        $ConfigurationManager = new ConfigurationManager();
+//        $arraySql = array();
+//        $token = "";
+//        try {
+//            $token = $ConfigurationManager->generateToken();
+//
+//            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts";
+//
+//            $headers = array(
+//                'Accept: application/json',
+//                'Content-Type: application/x-www-form-urlencoded',
+//                "api_key: " . Parameters::$apikey,
+//                "token: " . $token
+//            );
+//
+//            // Initialisation de cURL
+//            $ch = curl_init($url);
+//
+//            // Configuration de cURL
+//            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+//
+//            $response = curl_exec($ch);
+//            curl_close($ch);
+//
+//            $obj = json_decode($response);
+//            //var_dump($obj);
+//            // Vérifier si la conversion a réussi
+//            if ($obj === null && json_last_error() !== JSON_ERROR_NONE) {
+//                die('Erreur lors du décodage JSON');
+//            }
+//
+//            $arraySql = $obj;
+//        } catch (Exception $exc) {
+//            error_log($exc->getTraceAsString());
+//        }
+//        return $arraySql;
     }
 
     public function totalCommande($search_value, $LG_AGEID)
@@ -644,29 +644,33 @@ class CommandeManager implements CommandeInterface
     public function showAllCommandeproduit()
     {
         $arraySql = array();
+        Parameters::buildSuccessMessage("Liste des produits de la commande obtenue avec succès.");
         try {
             $query = "SELECT * 
                     FROM " . $this->Commande . " com 
                     INNER JOIN " . $this->Agence . " age ON com.lg_ageid = age.lg_ageid
-                    INNER JOIN " . $this->Societe . " as soc ON soc.lg_socid = com.lg_cliid 
+                    INNER JOIN " . $this->Societe . " as soc ON soc.lg_socid = age.lg_socid 
                     WHERE str_commstatut = 'process' 
                     ORDER BY dt_commcreated DESC";
             $res = $this->dbconnexion->prepare($query);
             $res->execute();
             while ($rowObj = $res->fetch(PDO::FETCH_ASSOC)) {
-                $cliid = $rowObj['str_socname'];
-                if (!isset($arraySql[$cliid])) {
-                    $arraySql[$cliid] = array();
-                }
-                $arraySql[$cliid][] = $rowObj;
+//                $cliid = $rowObj['str_socname'];
+//                if (!isset($arraySql[$cliid])) {
+//                    $arraySql[$cliid] = array();
+//                }
+                $arraySql[] = $rowObj;
             }
             $res->closeCursor();
 
             // Requête externe pour récupérer une information supplémentaire
             foreach ($arraySql as $cliid => &$commandes) {
-                $externalInfo = $this->getClientSolde(883)->clisolde;
+//                var_dump($commandes);
+                $externalInfo = $this->getClientSolde($commandes['lg_socextid'])->clisolde;
                 $commandes['clientEncours'] = $externalInfo;
             }
+
+//            var_dump($arraySql);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }

@@ -1,5 +1,8 @@
 <?php
-
+header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 /**
  * Created by PhpStorm.
  * User: chaar
@@ -9,14 +12,6 @@
 require '../services/scripts/php/core_transaction.php';
 include '../services/scripts/php/lib.php';
 
-// Permettre l'accès depuis n'importe quelle origine (CORS)
-header("Access-Control-Allow-Origin: *");
-
-// Autoriser les méthodes HTTP spécifiées
-header("Access-Control-Allow-Methods: POST");
-
-// Autoriser certains en-têtes HTTP
-header("Access-Control-Allow-Headers: Content-Type");
 
 $arrayJson = array();
 $OJson = array();
@@ -77,7 +72,7 @@ if ($mode == "listProduct") {
         $arrayJson_chidren["ArtLib"] = $value['str_prodescription'];
         $arrayJson_chidren["ArtLastPA"] = $value['int_propriceachat'];
         $arrayJson_chidren["ArtPrixBase"] = $value['int_propricevente'];
-        $arrayJson_chidren["ArtGPicID"] = Parameters::$rootFolderRelative . $value['str_propic'];
+        $arrayJson_chidren["ArtGPicID"] = Parameters::$rootFolderAbsolute. $value["lg_proid"] . $value['str_propic'];
         $arrayJson_chidren["ArtCateg"] = $value['str_procateg'];
         $arrayJson_chidren["ArtFamille"] = $value['str_profamille'];
         $arrayJson_chidren["ArtGamme"] = $value['str_progamme'];
