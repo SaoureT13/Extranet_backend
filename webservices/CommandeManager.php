@@ -92,7 +92,12 @@ if ($mode == "listCommande") {
 } else if ($mode == "getClientPanier") {
     $value = $CommandeManager->getClientPanier($LG_AGEID);
     if ($value) {
-            $arrayJson["data"] = $value;
+        $arrayJson["data"] = $value;
+    }
+} else if ($mode == "getExternalClientPanier") {
+    $value = $CommandeManager->getExternalClientPanier($LG_AGEID, $LG_COMMID);
+    if ($value) {
+        $arrayJson["data"] = $value;
     }
 } else {
 

@@ -46,7 +46,7 @@ interface CommandeInterface
 
     public function getClientPlafond($LG_CLIID, $token = null);
 
-    public function getExternalClientPanier($LG_CLIID, $LG_COMMID, $token = null);
+    public function getExternalClientPanier($LG_AGEID, $LG_COMMID, $token = null);
 
     public function updateCommande($LG_COMMID, $DBL_COMMMTHT, $DBL_COMMMTTTC);
 
@@ -809,14 +809,15 @@ class CommandeManager implements CommandeInterface
         return $arraySql;
     }
 
-    public function getExternalClientPanier($LG_CLIID, $LG_COMMID, $token = null)
+    public function getExternalClientPanier($LG_AGEID, $LG_COMMID, $token = null)
     {
         $ConfigurationManager = new ConfigurationManager();
         $arraySql = array();
         Parameters::buildSuccessMessage("Panier obtenu avec succès.");
         try {
+            $value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
+            $LG_CLIID = $value[0]['lg_socextid'];
             $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $LG_COMMID;
-//            var_dump($url);
             $token = $token ?: $ConfigurationManager->generateToken();
             // Headers de la requête
             $headers = array(
@@ -915,10 +916,10 @@ class CommandeManager implements CommandeInterface
                 $panier['produits'][] = [
                     'lg_cprid' => $rowObj['lg_cprid'],
                     'lg_proid' => $rowObj['lg_proid'],
-                    'int_cprquantity' => $rowObj['int_cprquantity'],
-                    'str_proname' => $rowObj['str_proname'],
-                    'str_prodescription' => $rowObj['str_prodescription'],
-                    'int_propricevente' => $rowObj['int_propricevente'],
+                    'PlvQteUV' => $rowObj['int_cprquantity'],
+                    'PlvCode' => $rowObj['str_proname'],
+                    'PlvLib' => $rowObj['str_prodescription'],
+                    'PlvPUNet' => $rowObj['int_propricevente'],
                     'str_procateg' => $rowObj['str_procateg'],
                     'str_profamille' => $rowObj['str_profamille'],
                     'str_progamme' => $rowObj['str_progamme'],
