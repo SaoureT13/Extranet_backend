@@ -50,7 +50,7 @@ interface CommandeInterface
 
     public function updateCommande($LG_COMMID, $DBL_COMMMTHT, $DBL_COMMMTTTC);
 
-    public function getClientPanier($LG_COMMID);
+    public function getClientPanier($LG_AGEID);
 }
 
 class CommandeManager implements CommandeInterface
@@ -921,13 +921,15 @@ class CommandeManager implements CommandeInterface
         return $validation;
     }
 
-    public function getClientPanier($LG_COMMID)
+    public function getClientPanier($LG_AGEID)
     {
         $validation = "";
         try {
+            $value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
+
             $query = "SELECT * FROM " . $this->Commande . " c INNER JOIN " . $this->Commproduit . " cp ON c.lg_commid = cp.lg_commid INNER JOIN " . $this->Produit . " p ON cp.lg_proid = p.lg_proid  WHERE c.lg_commid = :LG_COMMID";
             $res = $this->dbconnexion->prepare($query);
-            $res->execute(array("LG_COMMID" => $LG_COMMID));
+            $res->execute(array("LG_COMMID" => $value[0]['lg_commid']));
             $panier = array();
             while ($rowObj = $res->fetch(PDO::FETCH_ASSOC)) {
                 if (empty($panier)) {

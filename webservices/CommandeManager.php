@@ -90,7 +90,7 @@ if ($mode == "listCommande") {
     $value = $CommandeManager->getLastCommandeByAgence($LG_AGEID, $STR_COMMSTATUT);
     $arrayJson = $CommandeManager->showAllOrOneCommandeproduit($value[0]["lg_socextid"], $value[0]["lg_commid"], $token);
 } else if ($mode == "getClientPanier") {
-    $value = $CommandeManager->getClientPanier($LG_COMMID);
+    $value = $CommandeManager->getClientPanier($LG_AGEID);
     if ($value) {
         foreach ($value as $index => $val) {
             $arrayJson["data"][$index] = $val;
