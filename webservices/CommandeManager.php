@@ -80,7 +80,7 @@ if (isset($_REQUEST['STR_UTITOKEN'])) {
 
 if ($mode == "listCommande") {
     $arrayJson = $CommandeManager->showAllOrOneCommande($search_value, $LG_CLIID, $start, $length);
-} else if ($mode == "listCommandeproduct") {    
+} else if ($mode == "listCommandeproduct") {
     $STR_COMMSTATUT = Parameters::$statut_process;
     if (isset($_REQUEST['STR_COMMSTATUT']) && $_REQUEST['STR_COMMSTATUT'] != "") {
         $STR_COMMSTATUT = $_REQUEST['STR_COMMSTATUT'];
@@ -89,6 +89,13 @@ if ($mode == "listCommande") {
     $token = $ConfigurationManager->generateToken();
     $value = $CommandeManager->getLastCommandeByAgence($LG_AGEID, $STR_COMMSTATUT);
     $arrayJson = $CommandeManager->showAllOrOneCommandeproduit($value[0]["lg_socextid"], $value[0]["lg_commid"], $token);
+} else if ($mode == "getClientPanier") {
+    $value = $CommandeManager->getClientPanier($LG_COMMID);
+    if ($value) {
+        foreach ($value as $index => $val) {
+            $arrayJson["data"][$index] = $val;
+        }
+    }
 } else {
 
     if (isset($_REQUEST['STR_COMMNAME'])) {
@@ -108,7 +115,7 @@ if ($mode == "listCommande") {
     }
 
     if (isset($_REQUEST['INT_CPRQUANTITY']) && $_REQUEST['INT_CPRQUANTITY'] != "") {
-        $INT_CPRQUANTITY = (int) $_REQUEST['INT_CPRQUANTITY'];
+        $INT_CPRQUANTITY = (int)$_REQUEST['INT_CPRQUANTITY'];
     }
 
     if (isset($_REQUEST['LG_CPRID'])) {
@@ -128,7 +135,7 @@ if ($mode == "listCommande") {
             $CommandeManager->createCommandeProduit($OJson["LG_COMMID"], $OJson["LG_CLIID"], $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token);
             $arrayJson["LG_COMMID"] = $OJson["LG_COMMID"];
             //Mise à jour de la commande chez nous
-            $PanierClient = $CommandeManager->getClientPanier($OJson["LG_CLIID"], $OJson["LG_COMMID"], $token);
+            $PanierClient = $CommandeManager->getExternalClientPanier($OJson["LG_CLIID"], $OJson["LG_COMMID"], $token);
             $CommandeManager->updateCommande($OJson["LG_COMMID"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
         }
     } else if ($mode == "updateCommproduit") {
@@ -139,29 +146,27 @@ if ($mode == "listCommande") {
         $token = $ConfigurationManager->generateToken();
         $LG_COMMID = $CommandeManager->deleteCommandeProduit($LG_CPRID, $token);
         $arrayJson["LG_COMMID"] = $LG_COMMID;
-    }else if($mode == "getClientPanier"){
-        $value = $CommandeManager->getClientPanier($LG_CLIID, $LG_COMMID);
-        if($value){
+    } else if ($mode == "getClientPanier") {
+        $value = $CommandeManager->getExternalClientPanier($LG_CLIID, $LG_COMMID);
+        if ($value) {
             $arrayJson["data"] = $value;
         }
-    }else if($mode == "updateCommande"){
+    } else if ($mode == "updateCommande") {
         $value = $CommandeManager->updateCommande($LG_COMMID, "111111", "111111");
-        if($value){
+        if ($value) {
             $arrayJson["data"] = $value;
         }
-    }
-    //moi
-    else if($mode == "listeCommande"){
-        $value =  $CommandeManager->showAllCommandeproduit();
-         if($value){
-             $arrayJson["data"] = $value;
-         }
-    }
-    //moi
-    else if($mode == "validationCommande"){
+    } //moi
+    else if ($mode == "listeCommande") {
+        $value = $CommandeManager->showAllCommandeproduit();
+        if ($value) {
+            $arrayJson["data"] = $value;
+        }
+    } //moi
+    else if ($mode == "validationCommande") {
         $token = $ConfigurationManager->generateToken();
         $value = $CommandeManager->handleCommande($LG_AGEID, $token, $OUtilisateur);
-        if($value){
+        if ($value) {
             $arrayJson["data"] = $value;
         }
     }

@@ -78,6 +78,9 @@ if ($mode == "listProduct") {
         $arrayJson_chidren["ArtLastPA"] = $value['int_propriceachat'];
         $arrayJson_chidren["ArtPrixBase"] = $value['int_propricevente'];
         $arrayJson_chidren["ArtGPicID"] = Parameters::$rootFolderRelative . $value['str_propic'];
+        $arrayJson_chidren["ArtCateg"] = $value['str_procateg'];
+        $arrayJson_chidren["ArtFamille"] = $value['str_profamille'];
+        $arrayJson_chidren["ArtGamme"] = $value['str_progamme'];
         $OJson[] = $arrayJson_chidren;
     }
     $arrayJson["products"] = $OJson;

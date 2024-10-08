@@ -46,9 +46,11 @@ interface CommandeInterface
 
     public function getClientPlafond($LG_CLIID, $token = null);
 
-    public function getClientPanier($LG_CLIID, $LG_COMMID, $token = null);
+    public function getExternalClientPanier($LG_CLIID, $LG_COMMID, $token = null);
 
     public function updateCommande($LG_COMMID, $DBL_COMMMTHT, $DBL_COMMMTTTC);
+
+    public function getClientPanier($LG_COMMID);
 }
 
 class CommandeManager implements CommandeInterface
@@ -61,9 +63,13 @@ class CommandeManager implements CommandeInterface
     private $OCommande = array();
     private $OCommproduit = array();
     private $OAgence = array();
+
+    private $Produit = "produit";
+
     private $dbconnexion;
 
-    //constructeur de la classe 
+    //constructeur de la classe
+
     public function __construct()
     {
         $this->dbconnexion = DoConnexionPDO(Parameters::$host, Parameters::$user, Parameters::$pass, Parameters::$db, Parameters::$port);
@@ -435,7 +441,7 @@ class CommandeManager implements CommandeInterface
             }
             $this->updateOrderProduitExternal($LG_CPRID, $this->OCommproduit[0]["lg_commid"], $this->OCommproduit[0]["lg_socextid"], $INT_CPRQUANTITY, $token);
             //Mise à jour de la commande chez nous
-            $PanierClient = $this->getClientPanier($this->OCommproduit[0]["lg_socextid"], $this->OCommproduit[0]["lg_commid"], $token);
+            $PanierClient = $this->getExternalClientPanier($this->OCommproduit[0]["lg_socextid"], $this->OCommproduit[0]["lg_commid"], $token);
             $this->updateCommande($this->OCommproduit[0]["lg_commid"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
 
             $params_condition = array("lg_cprid" => $this->OCommproduit[0][0]);
@@ -526,7 +532,7 @@ class CommandeManager implements CommandeInterface
             $this->deleteOrderProduitExternal($this->OCommproduit[0][0], $this->OCommproduit[0]["lg_commid"], $this->OCommproduit[0]["lg_socextid"], $token);
 
             //Mise à jour de la commande chez nous
-            $PanierClient = $this->getClientPanier($this->OCommproduit[0]["lg_socextid"], $this->OCommproduit[0]["lg_commid"], $token);
+            $PanierClient = $this->getExternalClientPanier($this->OCommproduit[0]["lg_socextid"], $this->OCommproduit[0]["lg_commid"], $token);
             $this->updateCommande($this->OCommproduit[0]["lg_commid"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
 
             $params = array("lg_cprid" => $this->OCommproduit[0][0]);
@@ -841,7 +847,7 @@ class CommandeManager implements CommandeInterface
         return $arraySql;
     }
 
-    public function getClientPanier($LG_CLIID, $LG_COMMID, $token = null)
+    public function getExternalClientPanier($LG_CLIID, $LG_COMMID, $token = null)
     {
         $ConfigurationManager = new ConfigurationManager();
         $arraySql = array();
@@ -911,6 +917,51 @@ class CommandeManager implements CommandeInterface
             }
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
+        }
+        return $validation;
+    }
+
+    public function getClientPanier($LG_COMMID)
+    {
+        $validation = "";
+        try {
+            $query = "SELECT * FROM " . $this->Commande . " c INNER JOIN " . $this->Commproduit . " cp ON c.lg_commid = cp.lg_commid INNER JOIN " . $this->Produit . " p ON cp.lg_proid = p.lg_proid  WHERE c.lg_commid = :LG_COMMID";
+            $res = $this->dbconnexion->prepare($query);
+            $res->execute(array("LG_COMMID" => $LG_COMMID));
+            $panier = array();
+            while ($rowObj = $res->fetch(PDO::FETCH_ASSOC)) {
+                if (empty($panier)) {
+                    $panier =  [
+                        'lg_commid' => $rowObj['lg_commid'],
+                        'str_commname' => $rowObj['str_commname'],
+                        'dt_commcreated' => $rowObj['dt_commcreated'],
+                        'dt_commupdated' => $rowObj['dt_commupdated'],
+                        'str_commstatut' => $rowObj['str_commstatut'],
+                        'lg_ageid' => $rowObj['lg_ageid'],
+                        'lg_uticreatedid' => $rowObj['lg_uticreatedid'],
+                        'lg_ageoriginid' => $rowObj['lg_ageoriginid'],
+                        'dbl_commmtht' => $rowObj['dbl_commmtht'],
+                        'dbl_commmtttc' => $rowObj['dbl_commmtttc'],
+                    ];
+                }
+                $panier['produits'][] = [
+                    'lg_cprid' => $rowObj['lg_cprid'],
+                    'lg_proid' => $rowObj['lg_proid'],
+                    'int_cprquantity' => $rowObj['int_cprquantity'],
+                    'str_proname' => $rowObj['str_proname'],
+                    'str_prodescription' => $rowObj['str_prodescription'],
+                    'int_propricevente' => $rowObj['int_propricevente'],
+                    'str_procateg' => $rowObj['str_procateg'],
+                    'str_profamille' => $rowObj['str_profamille'],
+                    'str_progamme' => $rowObj['str_progamme'],
+                    'str_propic' => $rowObj['str_propic'],
+                ];
+            }
+            $validation = $panier;
+            $res->closeCursor();
+
+        } catch (Exception $exc) {
+            var_dump($exc->getTraceAsString());
         }
         return $validation;
     }

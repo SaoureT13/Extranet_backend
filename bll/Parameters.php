@@ -44,9 +44,13 @@ class Parameters {
     public static $default_picture = "default.png";
     public static $file_log = "../reports/import/images/publications/mylog.log";
 //    public static $rootFolderPictureUser = "http://vps694144.ovh.net/amermoz/reports/import/images/users/";
-    public static $rootFolderRelative = "extranetbackend/backoffice/images/products/";
+//    public static $rootFolderRelative = "extranetbackend/backoffice/images/products/
+    public static $rootFolderRelative = "extranetbackend/backoffice/images/";
+
 //    public static $rootFolderAbsolute = "C:/xampp/htdocs/extranetbackend/backoffice/images/products/";
-    public static $rootFolderAbsolute = "/Applications/MAMP/htdocs/extranetbackend/backoffice/images/products/";
+    public static $rootFolderAbsolute = "C:/xampp/htdocs/extranetbackend/backoffice/images/";
+
+//    public static $rootFolderAbsolute = "/Applications/MAMP/htdocs/extranetbackend/backoffice/images/products/";
     public static $rootFolderPictureUser = "http://localhost/cashtracking/images/avatar/";
     public static $rootFolderPicturePublication = "http://vps694144.ovh.net/amermoz/reports/import/images/publications/";
     public static $urlOnesignal = "https://onesignal.com/api/v1/notifications";

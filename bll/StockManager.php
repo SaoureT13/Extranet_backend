@@ -1,10 +1,11 @@
 <?php
 
-interface StockInterface {
+interface StockInterface
+{
 
-    public function createProduct($LG_PROID, $STR_PRONAME, $STR_PRODESCRIPTION, $INT_PROPRICEVENTE, $INT_PROPRICEACHAT);
+    public function createProduct($LG_PROID, $STR_PRONAME, $STR_PRODESCRIPTION, $INT_PROPRICEVENTE, $INT_PROPRICEACHAT, $STR_PROCATEG, $STR_PROFAMILLE, $STR_PROGAMME);
 
-    public function getProduct($LG_PROID, $token=null);
+    public function getProduct($LG_PROID, $token = null);
 
     public function showAllOrOneProduct($search_value);
 
@@ -17,43 +18,47 @@ interface StockInterface {
 
 }
 
-class StockManager implements StockInterface {
+class StockManager implements StockInterface
+{
 
     private $Produit = 'produit';
     private $OProduit = array();
 
     private $Document = "document";
 
-    private $dbconnnexion;
+    private $dbconnexion;
 
-    //constructeur de la classe 
-    public function __construct() {
-        $this->dbconnnexion = DoConnexionPDO(Parameters::$host, Parameters::$user, Parameters::$pass, Parameters::$db, Parameters::$port);
+    //constructeur de la classe
+    public function __construct()
+    {
+        $this->dbconnexion = DoConnexionPDO(Parameters::$host, Parameters::$user, Parameters::$pass, Parameters::$db, Parameters::$port);
     }
-    
-    public function createProduct($LG_PROID, $STR_PRONAME, $STR_PRODESCRIPTION, $INT_PROPRICEACHAT, $INT_PROPRICEVENTE) {
+
+    public function createProduct($LG_PROID, $STR_PRONAME, $STR_PRODESCRIPTION, $INT_PROPRICEACHAT, $INT_PROPRICEVENTE, $STR_PROCATEG, $STR_PROFAMILLE, $STR_PROGAMME)
+    {
         $validation = false;
         try {
-            $params = array("lg_proid" => $LG_PROID, "str_proname" => $STR_PRONAME, "dt_procreated" => get_now(), "str_prostatut" => Parameters::$statut_process, 
-                "str_prodescription" => $STR_PRODESCRIPTION, "int_propriceachat" => $INT_PROPRICEACHAT, "int_propricevente" => $INT_PROPRICEVENTE);
+            $params = array("lg_proid" => $LG_PROID, "str_proname" => $STR_PRONAME, "dt_procreated" => get_now(), "str_prostatut" => Parameters::$statut_process,
+                "str_prodescription" => $STR_PRODESCRIPTION, "int_propriceachat" => $INT_PROPRICEACHAT, "int_propricevente" => $INT_PROPRICEVENTE, "str_procateg" => $STR_PROCATEG, "str_profamille" => $STR_PROFAMILLE, "str_progamme" => $STR_PROGAMME);
             //var_dump($params);
             if ($this->dbconnexion != null) {
                 if (Persist($this->Produit, $params, $this->dbconnexion)) {
                     $validation = true;
-                } 
+                }
             }
         } catch (Exception $exc) {
-            $exc->getTraceAsString();
+            var_dump($exc->getTraceAsString());
         }
         return $validation;
     }
 
-    public function getProduct($LG_PROID, $token=null) {
+    public function getProduct($LG_PROID, $token = null)
+    {
 
         $ConfigurationManager = new ConfigurationManager();
-            $arraySql = array();
-            try {
-                $token = $token ?: $ConfigurationManager->generateToken();
+        $arraySql = array();
+        try {
+            $token = $token ?: $ConfigurationManager->generateToken();
 
             $url = Parameters::$urlRootAPI . "/products/" . $LG_PROID . "?ColSuppl=ArtCategEnu,ArtFamilleEnu,ArtGammeEnu,ARTFREE0,ARTFREE1,ARTFREE2,ARTFREE3,ARTFREE4,ARTFREE5";
 
@@ -91,7 +96,8 @@ class StockManager implements StockInterface {
         return $arraySql;
     }
 
-    public function showAllOrOneProduct($search_value) {
+    public function showAllOrOneProduct($search_value)
+    {
         $arraySql = array();
         try {
             $query = "SELECT * FROM produit t WHERE (t.str_prodescription LIKE :search_value OR t.str_proname LIKE :search_value) AND t.str_prostatut = :STR_STATUT ORDER BY t.str_prodescription";
@@ -108,7 +114,8 @@ class StockManager implements StockInterface {
         return $arraySql;
     }
 
-    public function totalProduct($search_value) {
+    public function totalProduct($search_value)
+    {
         $result = 0;
         try {
             $query = "SELECT COUNT(t.lg_proid) NOMBRE FROM produit t WHERE (t.str_prodescription LIKE :search_value OR t.str_proname LIKE :search_value) AND t.str_prostatut = :STR_STATUT";
@@ -120,12 +127,13 @@ class StockManager implements StockInterface {
             }
             $res->closeCursor();
         } catch (Exception $exc) {
-            $exc->getTraceAsString();
+            var_dump($exc->getTraceAsString());
         }
         return $result;
     }
 
-    public function showAllOrOneProductRemote($search_value, $start, $limit) {
+    public function showAllOrOneProductRemote($search_value, $start, $limit)
+    {
         $ConfigurationManager = new ConfigurationManager();
         $arraySql = array();
         $token = "";
@@ -193,7 +201,8 @@ class StockManager implements StockInterface {
         return $arraySql;
     }
 
-    public function loadExternalProduct() {
+    public function loadExternalProduct()
+    {
         $arrayJson = array();
         try {
             $arrayJson = $this->showAllOrOneProductRemote("", 1, 500);
@@ -201,13 +210,13 @@ class StockManager implements StockInterface {
 //            echo count($arrayJson->products);
             foreach ($arrayJson->products as $value) {
                 //echo $value->ArtID."<br/>";
-                $this->createProduct($value->ArtID, $value->ArtCode, $value->ArtLib, $value->ArtLastPA, $value->ArtPrixBase);
+                $this->createProduct($value->ArtID, $value->ArtCode, $value->ArtLib, $value->ArtLastPA, $value->ArtPrixBase,
+                    $value->ArtCategEnu, $value->ArtFamilleEnu, $value->ArtGammeEnu);
             }
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
     }
 
-    
 
 }
