@@ -885,9 +885,13 @@ class CommandeManager implements CommandeInterface
 
     public function getClientPanier($LG_AGEID)
     {
-        $validation = "";
+        $validation = array();
         try {
             $value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
+            if(empty($array)){
+                Parameters::buildErrorMessage("Aucun panier ouvert");
+                return $validation;
+            }
 
             $query = "SELECT * FROM " . $this->Commande . " c INNER JOIN " . $this->Commproduit . " cp ON c.lg_commid = cp.lg_commid INNER JOIN " . $this->Produit . " p ON cp.lg_proid = p.lg_proid  WHERE c.lg_commid = :LG_COMMID";
             $res = $this->dbconnexion->prepare($query);
