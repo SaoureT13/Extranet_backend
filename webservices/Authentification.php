@@ -53,7 +53,7 @@ if (isset($_REQUEST['IS_ADMIN'])) {
 }
 
 if ($mode == "doConnexion") {
-    $value = $ConfigurationManager->doConnexion($STR_UTILOGIN, $STR_UTIPASSWORD, $IS_ADMIN);
+    $value = $ConfigurationManager->doConnexion($STR_UTILOGIN, $STR_UTIPASSWORD, $IS_ADMIN ?? 0);
     if ($value != null) {
         $arrayJson["LG_UTIID"] = $value[0]['lg_utiid'];
         $arrayJson["STR_UTIFIRSTLASTNAME"] = $value[0]['str_utifirstlastname'];

@@ -45,6 +45,7 @@
       <change beforePath="$PROJECT_DIR$/images/products/logos/1728343932-Capture.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/services/scripts/php/lib.php" beforeDir="false" afterPath="$PROJECT_DIR$/services/scripts/php/lib.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webservices/Authentification.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/Authentification.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webservices/CommandeManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/CommandeManager.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webservices/ConfigurationManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/ConfigurationManager.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webservices/StockManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/StockManager.php" afterDir="false" />
     </list>
@@ -121,7 +122,7 @@
       <workItem from="1728054716753" duration="32863000" />
       <workItem from="1728224645716" duration="4080000" />
       <workItem from="1728348354049" duration="1908000" />
-      <workItem from="1728370361137" duration="15335000" />
+      <workItem from="1728370361137" duration="15792000" />
     </task>
     <servers />
   </component>

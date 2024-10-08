@@ -4,7 +4,7 @@ interface ConfigurationInterface
 {
 
     //code ajouté
-    public function doConnexion($STR_UTILOGIN, $STR_UTIPASSWORD, $IS_ADMIN);
+    public function doConnexion($STR_UTILOGIN, $STR_UTIPASSWORD, $IS_ADMIN = 0);
 
     public function doDisConnexion($STR_UTITOKEN);
 
@@ -161,9 +161,8 @@ class ConfigurationManager implements ConfigurationInterface
     }
 
     //connexion d'un utilisateur
-    public function doConnexion($STR_UTILOGIN, $STR_UTIPASSWORD, $IS_ADMIN)
+    public function doConnexion($STR_UTILOGIN, $STR_UTIPASSWORD, $IS_ADMIN = 0)
     {
-
         $validation = array();
         $Object = null;
         $STR_UTITOKEN = generateRandomString(20);
