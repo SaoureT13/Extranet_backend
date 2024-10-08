@@ -68,10 +68,6 @@ class StockManager implements StockInterface
                 "api_key: " . Parameters::$apikey,
                 "token: " . $token
             );
-
-            //echo $data->orderId;
-//            var_dump($headers);
-//            echo json_encode($dataSend);
             // Initialisation de cURL
             $ch = curl_init($url);
 
@@ -89,6 +85,21 @@ class StockManager implements StockInterface
                 die('Erreur lors du décodage JSON');
             }
 
+
+            $query = "SELECT * 
+                    FROM " . $this->Produit . " p
+                    LEFT JOIN " . $this->Document . " d ON p.lg_proid = d.p_key
+                    WHERE p.lg_proid = :LG_PROID ";
+            $res = $this->dbconnexion->prepare($query);
+            //exécution de la requête
+            $res->execute(array('LG_PROID' => $LG_PROID));
+            ;
+            while ($rowObj = $res->fetch()) {
+                if (!property_exists($obj, 'str_propic')) {
+                    $obj->products[0]->str_propic = $rowObj['str_propic'];
+                }
+                $obj->products[0]->chemins[] = $rowObj['str_docpath'];
+            }
             $arraySql = $obj;
         } catch (Exception $exc) {
             var_dump($exc->getTraceAsString());

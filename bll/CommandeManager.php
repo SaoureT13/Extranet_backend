@@ -147,7 +147,7 @@ class CommandeManager implements CommandeInterface
         try {
             //echo $LG_COMMID . "===" . $LG_AGEID . "+++" . $STR_COMMNAME . "---" . $OUtilisateur[0][0];
             $params = array("lg_commid" => $LG_COMMID, "str_commname" => $STR_COMMNAME, "dt_commcreated" => get_now(), "str_commstatut" => Parameters::$statut_process,
-                "lg_ageid" => $LG_AGEID, "lg_uticreatedid" => $OUtilisateur[0][0], "lg_ageoriginid" => $LG_AGEID);
+                "lg_ageid" => $LG_AGEID, "lg_uticreatedid" => $OUtilisateur[0]['lg_utiid'], "lg_ageoriginid" => $LG_AGEID);
             //var_dump($params);
             if ($this->dbconnexion != null) {
                 if (Persist($this->Commande, $params, $this->dbconnexion)) {
@@ -729,6 +729,7 @@ class CommandeManager implements CommandeInterface
             }
             $LG_CLIID = $this->OCommande[0]["lg_socextid"];
             $mTTC = $this->getClientPanier($LG_AGEID)['dbl_commmtttc'];
+//            var_dump($mTTC);
             $encours = $this->getClientSolde($LG_CLIID)->clisolde;
             $plafond = $this->OCommande[0]["dbl_socplafond"];
 
