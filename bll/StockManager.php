@@ -98,7 +98,7 @@ class StockManager implements StockInterface
                 if (!property_exists($obj, 'str_propic')) {
                     $obj->products[0]->str_propic = $rowObj['str_propic'];
                 }
-                $obj->products[0]->chemins[] = $rowObj['str_docpath'];
+                $obj->products[0]->gallerie[]['src'] = Parameters::$rootFolderRelative . "produits/" . "$LG_PROID/" . $rowObj['str_docpath'];
             }
             $arraySql = $obj;
         } catch (Exception $exc) {
