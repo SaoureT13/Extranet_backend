@@ -720,54 +720,15 @@ class CommandeManager implements CommandeInterface
         $mTTC = 0;
         $encours = 0;
         $plafond = 0;
-        $this->OCommande = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
-        if ($this->OCommande == null) {
-            Parameters::buildErrorMessage("Echec de validation de la commande. Commande innexistante");
-            return $validation;
-        }
-        $LG_CLIID = $this->OCommande[0]["lg_socextid"];
-        $LG_COMMID = $this->OCommande[0][0];
 
         try {
-            // URL de l'API
-            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $LG_COMMID;
-
-            // Headers de la requête
-            $headers = array(
-                'Accept: application/json',
-                'Content-Type: application/x-www-form-urlencoded',
-                "api_key: " . Parameters::$apikey,
-                "token: " . $token
-            );
-
-            // Initialisation de cURL
-            $ch = curl_init();
-
-            // Configuration de cURL
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-// Exécution de la requête
-            $response = curl_exec($ch);
-
-// Vérification des erreurs
-            if (curl_errno($ch)) {
-                echo 'Erreur cURL : ' . curl_error($ch);
+            $this->OCommande = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
+            if ($this->OCommande == null) {
+                Parameters::buildErrorMessage("Echec de validation de la commande. Commande innexistante");
+                return $validation;
             }
-
-// Fermeture de la session cURL
-            curl_close($ch);
-
-            // Convertir le JSON en objet PHP
-            $obj = json_decode($response);
-//            var_dump($obj);
-            // Vérifier si la conversion a réussi
-            if ($obj === null && json_last_error() !== JSON_ERROR_NONE) {
-                die('Erreur lors du décodage JSON');
-            }
-
-            $mTTC = $obj->pieces[0]->PcvMtTTC;
+            $LG_CLIID = $this->OCommande[0]["lg_socextid"];
+            $mTTC = $this->getClientPanier($LG_AGEID)['dbl_commmtttc'];
             $encours = $this->getClientSolde($LG_CLIID)->clisolde;
             $plafond = $this->OCommande[0]["dbl_socplafond"];
 
@@ -933,7 +894,7 @@ class CommandeManager implements CommandeInterface
             $panier = array();
             while ($rowObj = $res->fetch(PDO::FETCH_ASSOC)) {
                 if (empty($panier)) {
-                    $panier =  [
+                    $panier = [
                         'lg_commid' => $rowObj['lg_commid'],
                         'str_commname' => $rowObj['str_commname'],
                         'dt_commcreated' => $rowObj['dt_commcreated'],

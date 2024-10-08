@@ -38,7 +38,7 @@ class StockManager implements StockInterface
     {
         $validation = false;
         try {
-            $params = array("lg_proid" => $LG_PROID, "str_proname" => $STR_PRONAME, "dt_procreated" => get_now(), "str_prostatut" => Parameters::$statut_process,
+            $params = array("lg_proid" => $LG_PROID, "str_proname" => $STR_PRONAME, "dt_procreated" => get_now(), "str_prostatut" => Parameters::$statut_enable,
                 "str_prodescription" => $STR_PRODESCRIPTION, "int_propriceachat" => $INT_PROPRICEACHAT, "int_propricevente" => $INT_PROPRICEVENTE, "str_procateg" => $STR_PROCATEG, "str_profamille" => $STR_PROFAMILLE, "str_progamme" => $STR_PROGAMME);
             //var_dump($params);
             if ($this->dbconnexion != null) {
@@ -101,7 +101,7 @@ class StockManager implements StockInterface
         $arraySql = array();
         try {
             $query = "SELECT * FROM produit t WHERE (t.str_prodescription LIKE :search_value OR t.str_proname LIKE :search_value) AND t.str_prostatut = :STR_STATUT ORDER BY t.str_prodescription";
-            $res = $this->dbconnnexion->prepare($query);
+            $res = $this->dbconnexion->prepare($query);
             //exécution de la requête
             $res->execute(array('search_value' => "%" . $search_value . "%", 'STR_STATUT' => Parameters::$statut_enable));
             while ($rowObj = $res->fetch()) {
