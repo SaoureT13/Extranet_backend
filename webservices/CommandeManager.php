@@ -92,9 +92,7 @@ if ($mode == "listCommande") {
 } else if ($mode == "getClientPanier") {
     $value = $CommandeManager->getClientPanier($LG_AGEID);
     if ($value) {
-        foreach ($value as $index => $val) {
-            $arrayJson["data"][$index] = $val;
-        }
+            $arrayJson["data"] = $value;
     }
 } else {
 

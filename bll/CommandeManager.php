@@ -888,7 +888,7 @@ class CommandeManager implements CommandeInterface
         $validation = array();
         try {
             $value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
-            if(empty($array)){
+            if(empty($value)){
                 Parameters::buildErrorMessage("Aucun panier ouvert");
                 return $validation;
             }
