@@ -428,6 +428,8 @@ if ($mode == "listTypetransaction") {
             $arrayJson_chidren["str_socmail"] = $value[0][0]['str_socmail'];
             $arrayJson_chidren["str_socdescription"] = $value[0][0]['str_socdescription'];
             $arrayJson_chidren["str_socstatut"] = $value[0][0]['str_socstatut'];
+            $arrayJson_chidren["str_soccode"] = $value[0][0]['str_soccode'];
+            $arrayJson_chidren["lg_socextid"] = $value[0][0]['lg_socextid'];
             $arrayJson_chidren["gallery"] = $value[0][0]['gallery'];
             $OJson[] = $arrayJson_chidren;
             $arrayJson['demande'] = $OJson;

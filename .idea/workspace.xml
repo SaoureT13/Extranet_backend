@@ -5,49 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="121c1eea-a11a-4dce-9531-14b7ace10463" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/avatars/5Aae8Lgi6rGBqnYhaVIf/1728311725-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/avatars/7fRy0dzS6yRdvPx64WkI/1728229109-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/avatars/9TBIAAe4y23zoFy7mwjd/1728311343-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/avatars/Q3WKJ4snnV7ShR4ulaxp/1728311803-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/avatars/RxswZv7LGFSiDfnwKgRg/1728226459-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/avatars/S4poAzPx9lBysvvFy0ZP/1728281178-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/documents/2ukvrZ5BtjeYMNP8wKEW/1728229109-test-img.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/documents/DnNRGhWMo7ytdjcT5qdZ/1728311343-test-img.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/documents/FSDmepdC2H7SNYJESxOy/1728226459-test-img.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/documents/KdEEq87zNi0uwALNWXzs/1728281178-test-img.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/documents/M0GUJF5m6iQ3lhhaWjRd/1728311725-test-img.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/documents/rA6h3JzU3CTZcvTMYlTO/1728311803-test-img.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728256073-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728258067-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728258080-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728258105-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728258113-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728258133-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728280956-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728281068-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728281178-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728311343-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728311725-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/1728311803-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/2ukvrZ5BtjeYMNP8wKEW/1728229109-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/logos/FSDmepdC2H7SNYJESxOy/1728226459-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webservices/C__/xampp/htdocs/extranetbackend/backoffice/images/logos/4Fk4tgRqxRXCuXETOosi/1728254959-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webservices/C__/xampp/htdocs/extranetbackend/backoffice/images/logos/qVaxT4hGfC2SqsD5NtFT/1728254321-Capture.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webservices/C__/xampp/htdocs/extranetbackend/backoffice/images/logos/sg8QwJEjJmzQ6yrmxfae/1728254365-Capture.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bll/CommandeManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/bll/CommandeManager.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bll/ConfigurationManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/bll/ConfigurationManager.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bll/Parameters.php" beforeDir="false" afterPath="$PROJECT_DIR$/bll/Parameters.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bll/StockManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/bll/StockManager.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/products/avatars/pt1JFk25uKOH1TjCkg6A/1728343932-Capture.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/products/documents/zIsw9O0yxJTgJf2Lt54I/1728343932-4s36fuFKPx8OSWovL6Sk.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/products/logos/1728343932-Capture.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/scripts/php/lib.php" beforeDir="false" afterPath="$PROJECT_DIR$/services/scripts/php/lib.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webservices/Authentification.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/Authentification.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webservices/CommandeManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/CommandeManager.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webservices/ConfigurationManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/ConfigurationManager.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webservices/StockManager.php" beforeDir="false" afterPath="$PROJECT_DIR$/webservices/StockManager.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,24 +42,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "dev",
-    "last_opened_file_path": "C:/xampp/htdocs/extranetbackend/backoffice",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/xampp/htdocs/extranetbackend/backoffice&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mariadb"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mariadb&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -123,6 +83,8 @@
       <workItem from="1728224645716" duration="4080000" />
       <workItem from="1728348354049" duration="1908000" />
       <workItem from="1728370361137" duration="31208000" />
+      <workItem from="1728519621424" duration="67000" />
+      <workItem from="1728522899406" duration="1865000" />
     </task>
     <servers />
   </component>

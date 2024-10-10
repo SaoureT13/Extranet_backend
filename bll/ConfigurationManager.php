@@ -1312,7 +1312,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
 
             $validation = $demandeData = Finds($query, $this->dbconnnexion, ['LG_SOCID' => $LG_SOCID]);
             if ($demandeData == null) {
-               return $validation;
+                return $validation;
             }
             Parameters::buildSuccessMessage("Demande trouvée");
             $validation = $demandeData;
@@ -1328,34 +1328,37 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     {
         $validation = "";
         $error = "";
-        Parameters::buildErrorMessage("Echec de la création du client chez 8sens.");
+        Parameters::buildSuccessMessage("Création du client chez 8sens réussi.");
         $url = "http://160.120.155.165:8082/v1/clients";
-        $header = array(
-            "Accept: application/json",
-            "api_key: ZghY887665YhGH",
-            "Content-Type: application/json",
-            "token: " . $this->generateToken()
-        );
 
-
-        $demandeData = $this->getClientDemande($LG_SOCID);
-        if ($demandeData == null) {
-            Parameters::buildErrorMessage("Echec de la création du client chez 8sens. Veuillez contacté votre administrateur");
-            return $validation;
-        }
-        $data = array(
-            "clilib" => $demandeData[0][0]['str_socname'],//STR_SOCNAME
-            "clilogin" => $demandeData[0][0]['str_utilogin'],//str_utilogin
-            "moctel" => $demandeData[0][0]['str_socphone'],
-            "mocport" => $demandeData[0][0]['str_socphone'],
-            "mocmail" => $demandeData[0][0]['str_socmail'],
-            "clicategenu" => $demandeData[0][0]['str_lsttypesociete'],
-            "clisiret" => $demandeData[0][0]['str_socsiret'],
-            "pyscode" => $demandeData[0][0]['str_lstpaysdescription'],
-            "prsprenom" => $demandeData[0][0]['str_utifirstlastname'],
-            "prsname" => $demandeData[0][0]['str_utifirstlastname'],
-        );
         try {
+            $header = array(
+                "Accept: application/json",
+                "api_key: ZghY887665YhGH",
+                "Content-Type: application/json",
+                "token: " . $this->generateToken()
+            );
+
+
+            $demandeData = $this->getClientDemande($LG_SOCID);
+//        var_dump($demandeData);
+            if ($demandeData == null) {
+                Parameters::buildErrorMessage("Echec de la création du client chez 8sens. Veuillez contacté votre administrateur");
+                return $validation;
+            }
+            $data = array(
+                "clilib" => $demandeData[0][0]['str_socname'],//STR_SOCNAME
+                "clilogin" => $demandeData[0][0]['str_utilogin'],//str_utilogin
+                "moctel" => $demandeData[0][0]['str_socphone'],
+                "mocport" => $demandeData[0][0]['str_socphone'],
+                "mocmail" => $demandeData[0][0]['str_socmail'],
+                "clicategenu" => $demandeData[0][0]['str_typesociete'],
+                "clisiret" => $demandeData[0][0]['str_socsiret'],
+                "pyscode" => $demandeData[0][0]['str_paysfacturation'],
+                "prsprenom" => $demandeData[0][0]['str_utifirstlastname'],
+                "prsname" => $demandeData[0][0]['str_utifirstlastname'],
+            );
+
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
