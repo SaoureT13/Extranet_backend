@@ -100,8 +100,8 @@ interface ConfigurationInterface
     public function createClientExternal($LG_SOCID, $OUtilisateur);
 
     //moi
-    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO=null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE,
-                                  $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC=null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur);
+    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO = null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE,
+                                  $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC = null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur);
 
     //moi
     public function dowloadDocuments($Documents, $LG_SOCID, $OUtilisateur);
@@ -190,12 +190,11 @@ class ConfigurationManager implements ConfigurationInterface
                 //exécution de la requête
                 $res->execute(array('STR_UTILOGIN' => $STR_UTILOGIN, 'STR_UTIPASSWORD' => $STR_UTIPASSWORD, 'STR_UTISTATUT' => Parameters::$statut_enable, 'LG_SOCID' => Parameters::$SN_PROVECI_ID, 'LG_AGEID' => Parameters::$SN_PROVECI_ID, 'LG_PROID' => Parameters::$admin_profileID));
             } else {
-                $query = "SELECT t.*, p.str_prodescription, p.str_protype, s.lg_socid, s.str_socname, s.str_socdescription, s.str_soclogo, s.dbl_socplafond, s.lg_socextid FROM " . $this->Utilisateur . " t INNER JOIN ". $this->Profile ." p ON t.lg_proid = p.lg_proid INNER JOIN ". $this->Agence ." a ON a.lg_ageid = t.lg_ageid INNER JOIN ". $this->Societe ." s ON s.lg_socid = a.lg_socid 
+                $query = "SELECT t.*, p.str_prodescription, p.str_protype, s.lg_socid, s.str_socname, s.str_socdescription, s.str_soclogo, s.dbl_socplafond, s.lg_socextid FROM " . $this->Utilisateur . " t INNER JOIN " . $this->Profile . " p ON t.lg_proid = p.lg_proid INNER JOIN " . $this->Agence . " a ON a.lg_ageid = t.lg_ageid INNER JOIN " . $this->Societe . " s ON s.lg_socid = a.lg_socid 
             WHERE t.str_utilogin = :STR_UTILOGIN AND 
                 t.str_utipassword = :STR_UTIPASSWORD AND 
                 t.STR_UTISTATUT = :STR_UTISTATUT
-                "
-                        ;
+                ";
                 $res = $this->dbconnnexion->prepare($query);
                 $res->execute(array('STR_UTILOGIN' => $STR_UTILOGIN, 'STR_UTIPASSWORD' => $STR_UTIPASSWORD,
                     'STR_UTISTATUT' => Parameters::$statut_enable));
@@ -459,14 +458,14 @@ class ConfigurationManager implements ConfigurationInterface
             return "";
         }
         try {
-            if($STR_SOCLOGO != null){
+            if ($STR_SOCLOGO != null) {
 //                $STR_SOCLOGO = uploadFile(Parameters::$rootFolderAbsolute . "logos/" . $LG_SOCID . "/", $_FILES['STR_SOCLOGO']);
                 $STR_SOCLOGO = uploadFile(Parameters::$rootFolderAbsolute . "logos/", $_FILES['STR_SOCLOGO']);
             }
             $params = array("lg_socid" => $LG_SOCID, "str_socname" => $STR_SOCNAME, "str_socdescription" => $STR_SOCDESCRIPTION, "str_soclogo" => $STR_SOCLOGO, "str_soccode" => $STR_SOCCODE,
                 "str_socstatut" => Parameters::$statut_process, "str_socmail" => $STR_SOCMAIL, "str_socphone" => $STR_SOCPHONE, "dt_soccreated" => get_now(),
                 "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId, "str_socsiret" => $STR_SOCSIRET, "lg_lsttypesocid" => $LG_LSTTYPESOCID[0]['lg_lstid'], "lg_lstpayid" => $LG_LSTPAYID[0]['lg_lstid']);
-            
+
             if ($this->dbconnnexion != null) {//
                 if (Persist($this->Societe, $params, $this->dbconnnexion)) {
                     $validation = $LG_SOCID;
@@ -1132,9 +1131,9 @@ class ConfigurationManager implements ConfigurationInterface
             return "";
         }
         try {
-           if($STR_UTIPIC){
-               $STR_UTIPIC = uploadFile(Parameters::$rootFolderAbsolute . "avatars/" . $LG_UTIID . "/", $STR_UTIPIC);
-           }
+            if ($STR_UTIPIC) {
+                $STR_UTIPIC = uploadFile(Parameters::$rootFolderAbsolute . "avatars/" . $LG_UTIID . "/", $STR_UTIPIC);
+            }
             $params = array("lg_utiid" => $LG_UTIID, "str_utifirstlastname" => $STR_UTIFIRSTLASTNAME, "str_utiphone" => $STR_UTIPHONE, "str_utimail" => $STR_UTIMAIL, "str_utilogin" => $STR_UTILOGIN, "str_utipassword" => $STR_UTIPASSWORD, "str_utipic" => $STR_UTIPIC, "str_utitoken" => generateRandomString(), "str_utionesignalid" => "", "dt_uticreated" => get_now(), "str_utistatut" => Parameters::$statut_process, "lg_ageid" => $LG_AGEID[0]['lg_ageid'],
                 "lg_proid" => $LG_PROID[0]['lg_proid'], "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
 
@@ -1204,12 +1203,12 @@ class ConfigurationManager implements ConfigurationInterface
         $validation = "";
         $LG_DOCID = generateRandomString(20);
         $LG_LSTID = $this->getListe($LG_LSTID);
-        
+
         try {
             if ($LG_LSTID == null) {
-            Parameters::buildErrorMessage("Type de document inexistant");
-            return "";
-        }
+                Parameters::buildErrorMessage("Type de document inexistant");
+                return "";
+            }
             $params = array("lg_docid" => $LG_DOCID, "p_key" => $P_KEY, "str_docpath" => $STR_DOCPATH, "dt_doccreated" => get_now(), "str_docstatut" => Parameters::$statut_enable, "lg_lstid" => $LG_LSTID[0]['lg_lstid'], "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
 
             if ($this->dbconnnexion != null) {
@@ -1254,45 +1253,28 @@ class ConfigurationManager implements ConfigurationInterface
         Parameters::buildErrorMessage("Impossible d'obtenir toutes les demandes");
 
         $query = "
-            select distinct uti.str_utifirstlastname,
-                uti.lg_utiid,
-                uti.str_utimail,
-                uti.str_utilogin,
-                uti.str_utiphone,
-                soc.str_socname,
-                soc.str_socsiret,
-                soc.str_soccode,
-                soc.str_socphone,
-                soc.str_socmail,
-                soc.str_socdescription,
-                soc.str_socstatut,
-                soc.lg_socid,
-                soc.dt_soccreated,
-                soc.str_soclogo,
-                soc.lg_socextid,
-                uti.lg_proid,
-                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as chemins,
+            select distinct *,
+                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as gallery,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_lstpaysdescription,
+                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_paysfacturation,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_lsttypesociete
-from utilisateur as uti
-         inner join agence as age on uti.lg_ageid = age.lg_ageid
-         inner join societe as soc on age.lg_socid = soc.lg_socid
-         inner join document as doc on soc.lg_socid = substring_index(doc.lg_docid, '.', 1)
-        inner join liste as lst on lst.lg_lstid = doc.lg_lstid
-where soc.str_socstatut = '".$statut."' 
-  and uti.str_utistatut = '".$statut."'
-  and age.str_agestatut = 'enable'
-    and uti.lg_proid = " . Parameters::$gerantProfileID . "
-group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid
+                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_typesociete
+            from utilisateur as uti
+                     inner join agence as age on uti.lg_ageid = age.lg_ageid
+                     inner join societe as soc on age.lg_socid = soc.lg_socid
+                     inner join document as doc on soc.lg_socid = doc.p_key
+                    inner join liste as lst on lst.lg_lstid = doc.lg_lstid
+            where  uti.str_utistatut = :STR_STATUT 
+                and age.str_agestatut = 'enable'
+              and soc.str_socstatut = :STR_STATUT
+                and uti.lg_proid = 3
+            group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid
             ";
         try {
-            $validation = $this->ODemandes = Finds($query, $this->dbconnnexion, array());
-
-
+//            var_dump($query);
+            $validation = $this->ODemandes = Finds($query, $this->dbconnnexion, array("STR_STATUT" => $statut));
             if ($this->ODemandes == null) {
                 return $validation;
             }
@@ -1300,7 +1282,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
             Parameters::buildSuccessMessage("Demandes trouvées");
             $validation = $this->ODemandes;
         } catch (Exception $exc) {
-            error_log($exc->getTraceAsString());
+            var_dump($exc->getTraceAsString());
             Parameters::buildErrorMessage("Impossible d'obtenir toutes les demandes");
         }
         return $validation;
@@ -1309,48 +1291,34 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     public function getClientDemande($LG_SOCID)
     {
         $validation = "";
+        Parameters::buildErrorMessage("Impossible d'obtenir la demande");
         try {
-            $query = "select distinct uti.str_utifirstlastname,
-                uti.lg_utiid,
-                uti.str_utimail,
-                uti.str_utilogin,
-                uti.str_utiphone,
-                soc.str_socname,
-                soc.str_socsiret,
-                soc.str_soccode,
-                soc.str_socphone,
-                soc.str_socmail,
-                soc.str_socdescription,
-                soc.str_socstatut,
-                soc.lg_socid,
-                soc.dt_soccreated,
-                soc.str_soclogo,
-                soc.lg_socextid,
-                uti.lg_proid,
-                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as chemins,
+            $query = "select distinct *,
+                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as gallery,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_lstpaysdescription,
+                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_paysfacturation,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_lsttypesociete
-from utilisateur as uti
-         inner join agence as age on uti.lg_ageid = age.lg_ageid
-         inner join societe as soc on age.lg_socid = soc.lg_socid
-         inner join document as doc on soc.lg_socid = substring_index(doc.lg_docid, '.', 1)
-        inner join liste as lst on lst.lg_lstid = doc.lg_lstid
-where soc.str_socstatut = '".Parameters::$statut_process."'
-  and uti.str_utistatut = '" . Parameters::$statut_process ."'
-  and uti.lg_proid = " . Parameters::$gerantProfileID . "
-  and soc.lg_socid = :LG_SOCID
-group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid";
-            $demandeData = Finds($query, $this->dbconnnexion, ['LG_SOCID' => $LG_SOCID]);
+                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_typesociete
+                from utilisateur as uti
+                         inner join agence as age on uti.lg_ageid = age.lg_ageid
+                         inner join societe as soc on age.lg_socid = soc.lg_socid
+                         inner join document as doc on soc.lg_socid = doc.p_key
+                        inner join liste as lst on lst.lg_lstid = doc.lg_lstid
+                where soc.lg_socid = :LG_SOCID
+group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid
+                ";
 
-            if ($demandeData) {
-                $validation = $demandeData;
+            $validation = $demandeData = Finds($query, $this->dbconnnexion, ['LG_SOCID' => $LG_SOCID]);
+            if ($demandeData == null) {
+               return $validation;
             }
+            Parameters::buildSuccessMessage("Demande trouvée");
+            $validation = $demandeData;
         } catch (Exception $exc) {
             error_log($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Impossible d'obtenir la demande");
         }
 
         return $validation;
@@ -1424,7 +1392,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     }
 
 
-    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO=null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE, $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC=null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur): bool
+    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO = null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE, $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC = null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur): bool
     {
         $validation = false;
         try {
@@ -1491,7 +1459,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
             }
 
             $params_condition = array("lg_socid" => $this->OSociete[0]['lg_socid']);
-            $params_to_update = array("str_socstatut" => Parameters::$statut_canceled, "dt_socupdated" => get_now(),
+            $params_to_update = array("str_socstatut" => Parameters::$statut_delete, "dt_socupdated" => get_now(),
                 "lg_utiupdatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
 
             if ($this->dbconnnexion != null) {
@@ -1512,7 +1480,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     public function markProductAsViewed($LG_PROID, $LG_UTIID)
     {
         $validation = false;
-        if($LG_UTIID == null || $LG_UTIID == ""){
+        if ($LG_UTIID == null || $LG_UTIID == "") {
             Parameters::buildErrorMessage("Utilisateur inexistant");
             return $validation;
         }
@@ -1603,7 +1571,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
                         $STR_PROPIC_THUMBNAIL = uploadFile(Parameters::$rootFolderAbsolute . "produits/" . $LG_PROID . "/", $thumbnailImage, true);
 
                         $LG_DOCID = generateRandomNumber(20);
-                        $params = array("lg_docid" => $LG_DOCID,"p_key" => $LG_PROID, "str_docpath" => $STR_PROPIC_THUMBNAIL, "dt_doccreated" => get_now(), "str_docstatut" => Parameters::$statut_enable, "lg_lstid" => 5, "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
+                        $params = array("lg_docid" => $LG_DOCID, "p_key" => $LG_PROID, "str_docpath" => $STR_PROPIC_THUMBNAIL, "dt_doccreated" => get_now(), "str_docstatut" => Parameters::$statut_enable, "lg_lstid" => 5, "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
 
                         if ($this->dbconnnexion != null) {
                             if (Persist($this->Document, $params, $this->dbconnnexion)) {

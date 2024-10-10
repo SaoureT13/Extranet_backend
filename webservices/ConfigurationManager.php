@@ -315,7 +315,7 @@ if ($mode == "listTypetransaction") {
         $STR_SOCSTATUT = $_REQUEST['STR_SOCSTATUT'];
     }
 
-    if(isset($_REQUEST['STR_UTIPIC'])){
+    if (isset($_REQUEST['STR_UTIPIC'])) {
         $STR_UTIPIC = $_FILES['STR_UTIPIC'];
     }
 
@@ -384,7 +384,26 @@ if ($mode == "listTypetransaction") {
     } else if ($mode == 'getClientDemandes') {
         $value = $ConfigurationManager->getClientDemandes($STR_SOCSTATUT);
         if ($value != null) {
-            $arrayJson[] = $value[0];
+            foreach ($value[0] as $val) {
+                $arrayJson_chidren = array();
+                $arrayJson_chidren["str_utifirstlastname"] = $val['str_utifirstlastname'];
+                $arrayJson_chidren["str_utimail"] = $val['str_utimail'];
+                $arrayJson_chidren["str_utiphone"] = $val['str_utiphone'];
+                $arrayJson_chidren["str_utilogin"] = $val['str_utilogin'];
+                $arrayJson_chidren["lg_socid"] = $val['lg_socid'];
+                $arrayJson_chidren["str_socname"] = $val['str_socname'];
+                $arrayJson_chidren["dt_soccreated"] = $val['dt_soccreated'];
+                $arrayJson_chidren["str_typesociete"] = $val["str_typesociete"];
+                $arrayJson_chidren["str_socsiret"] = $val['str_socsiret'];
+                $arrayJson_chidren["str_paysfacturation"] = $val['str_paysfacturation'];
+                $arrayJson_chidren["str_socphone"] = $val['str_socphone'];
+                $arrayJson_chidren["str_socmail"] = $val['str_socmail'];
+                $arrayJson_chidren["str_socdescription"] = $val['str_socdescription'];
+                $arrayJson_chidren["str_socstatut"] = $val['str_socstatut'];
+                $arrayJson_chidren["gallery"] = $val['gallery'];
+                $OJson[] = $arrayJson_chidren;
+            }
+            $arrayJson["demandes"] = $OJson;
         }
     } //moi
     else if ($mode == 'getUtilisateur') {
@@ -395,8 +414,25 @@ if ($mode == "listTypetransaction") {
     } else if ($mode == "getClientDemande") {
         $value = $ConfigurationManager->getClientDemande($LG_SOCID);
         if ($value) {
-            $arrayJson[] = $value[0];
+            $arrayJson_chidren = array();
+            $arrayJson_chidren["str_utifirstlastname"] = $value[0][0]['str_utifirstlastname'];
+            $arrayJson_chidren["str_utimail"] = $value[0][0]['str_utimail'];
+            $arrayJson_chidren["str_utiphone"] = $value[0][0]['str_utiphone'];
+            $arrayJson_chidren["str_utilogin"] = $value[0][0]['str_utilogin'];
+            $arrayJson_chidren["lg_socid"] = $value[0][0]['lg_socid'];
+            $arrayJson_chidren["str_socname"] = $value[0][0]['str_socname'];
+            $arrayJson_chidren["str_typesociete"] = $value[0][0]["str_typesociete"];
+            $arrayJson_chidren["str_socsiret"] = $value[0][0]['str_socsiret'];
+            $arrayJson_chidren["str_paysfacturation"] = $value[0][0]['str_paysfacturation'];
+            $arrayJson_chidren["str_socphone"] = $value[0][0]['str_socphone'];
+            $arrayJson_chidren["str_socmail"] = $value[0][0]['str_socmail'];
+            $arrayJson_chidren["str_socdescription"] = $value[0][0]['str_socdescription'];
+            $arrayJson_chidren["str_socstatut"] = $value[0][0]['str_socstatut'];
+            $arrayJson_chidren["gallery"] = $value[0][0]['gallery'];
+            $OJson[] = $arrayJson_chidren;
+            $arrayJson['demande'] = $OJson;
         }
+//        var_dump($arrayJson);
     } //moi
     else if ($mode == "showAllOrOneSociete") {
         $value = $ConfigurationManager->showAllOrOneSociete($SEARCH_VALUE, $STR_SOCSTATUT);
@@ -465,12 +501,10 @@ if ($mode == "listTypetransaction") {
         if ($value) {
             $arrayJson[] = $value[0];
         }
-    }
-    //moi
-    else if ($mode == "markProductAsViewed"){
+    } //moi
+    else if ($mode == "markProductAsViewed") {
         $ConfigurationManager->markProductAsViewed($LG_PROID, $LG_UTIID);
-    }
-    //moi
+    } //moi
     else if ($mode == "uploadProductPicture") {
         $OUtilisateur = $ConfigurationManager->getUtilisateur($STR_UTITOKEN);
         $ConfigurationManager->uploadProductPicture($_FILES['images'], $LG_PROID, $OUtilisateur);

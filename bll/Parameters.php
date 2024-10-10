@@ -34,8 +34,6 @@ class Parameters {
     public static $statut_enable = "enable";
     public static $statut_closed = "closed";
     public static $statut_delete = "delete";
-    public static $statut_validated = "validated";
-    public static $statut_canceled = "canceled";
 
     public static $Message = "0";
     public static $Detailmessage = "Aucune opération en cours";
