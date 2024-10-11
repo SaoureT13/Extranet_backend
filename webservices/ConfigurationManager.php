@@ -438,6 +438,7 @@ if ($mode == "listTypetransaction") {
             $OJson[] = $arrayJson_chidren;
             $arrayJson['demande'] = $OJson;
         }
+//        var_dump($arrayJson);
     } //moi
     else if ($mode == "showAllOrOneSociete") {
         $value = $ConfigurationManager->showAllOrOneSociete($SEARCH_VALUE, $STR_SOCSTATUT);
