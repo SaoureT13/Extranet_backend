@@ -13,11 +13,11 @@
  */
 class Parameters {
 
-//    public static $host = "151.80.234.255"; //online db parameters
+//    public static $host = "132.148.178.160"; //online db parameters
     public static $host = "localhost"; //online db parameters
     public static $user = "root";
-//    public static $pass = "";
     public static $port = "3306";
+//    public static $user = "cpses_i5jnq4y4m1"; //PROD
 //    public static $user = "clinic_db";
 //    public static $pass = "nkmclinic";
     public static $pass = "";

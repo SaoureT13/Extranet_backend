@@ -120,6 +120,7 @@ function Merge($table, $params_to_update, $params_condition, $dbconnexion) {
 
         $query = "UPDATE " . $table . " SET " . $str_element_to_update . $remain_query;
 //        var_dump($query);
+//        echo $query;
         $res = $dbconnexion->prepare($query); //on prépare la requete
         $params = array_merge($params_to_update, $params_condition); // fusion de deux tableaux en un seul
         $res->execute($params); //on execute la requete
@@ -127,11 +128,13 @@ function Merge($table, $params_to_update, $params_condition, $dbconnexion) {
         if ($res->rowCount() > 0) {
             $validation = true;
         }
+        $res->closeCursor();
     } catch (Exception $exc) {
         error_log($exc->getMessage());
+        var_dump($exc);
         Parameters::buildErrorMessage("Erreur système sur la mise à jour. Veuillez contacter votre administrateur");
     }
-    $res->closeCursor();
+    
 
     return $validation;
 }

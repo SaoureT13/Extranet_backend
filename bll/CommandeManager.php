@@ -46,7 +46,7 @@ interface CommandeInterface
 
     public function getClientPlafond($LG_CLIID, $token = null);
 
-    public function getExternalClientPanier($LG_AGEID, $LG_COMMID, $token = null);
+    public function getExternalClientPanier($LG_CLIID, $LG_COMMID, $token = null);
 
     public function updateCommande($LG_COMMID, $DBL_COMMMTHT, $DBL_COMMMTTTC);
 
@@ -299,11 +299,16 @@ class CommandeManager implements CommandeInterface
             } else {
                 $LG_CPRID = $this->OCommproduit[0][0];
 //                echo "=====".$validation;
-                $this->updateCommandeProduit($LG_CPRID, (int)$this->OCommproduit[0]["int_cprquantity"] + (int)$INT_CPRQUANTITY, $OUtilisateur, $token);
+                $LG_CPRID = $this->updateCommandeProduit($LG_CPRID, (int)$this->OCommproduit[0]["int_cprquantity"] + (int)$INT_CPRQUANTITY, $OUtilisateur, $token);
                 //TODO: A faire
 //                $PanierClient = $this->getClientPanier($LG_CLIID, $LG_COMMID, $token);
 //                $this->updateCommande($LG_COMMID, $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
             }
+
+            $PanierClient = $this->getExternalClientPanier($LG_CLIID, $LG_COMMID, $token);
+//            var_dump($PanierClient);
+
+            $this->updateCommande($LG_COMMID, $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
@@ -389,6 +394,7 @@ class CommandeManager implements CommandeInterface
         $arraySql = array();
         try {
             $query = "SELECT t.*, s.lg_socextid FROM " . $this->Commproduit . " t, " . $this->Commande . " c, " . $this->Agence . " a, " . $this->Societe . " s WHERE t.lg_commid = c.lg_commid and c.lg_ageid = a.lg_ageid and a.lg_socid = s.lg_socid and t.lg_cprid = :LG_CPRID";
+//            echo $query;
             $res = $this->dbconnexion->prepare($query);
             //exécution de la requête
             $res->execute(array("LG_CPRID" => $LG_CPRID));
@@ -404,14 +410,14 @@ class CommandeManager implements CommandeInterface
 
     public function initCommandeProduit($LG_CPRID, $LG_COMMID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur)
     {
-        $validation = false;
+        $validation = "";
         try {
             $params = array("lg_cprid" => $LG_CPRID, "lg_commid" => $LG_COMMID, "lg_proid" => $LG_PROID, "dt_cprcreated" => get_now(), "str_cprstatut" => Parameters::$statut_process,
                 "int_cprquantity" => $INT_CPRQUANTITY, "lg_uticreatedid" => $OUtilisateur[0][0]);
 //            var_dump($params);
             if ($this->dbconnexion != null) {
                 if (Persist($this->Commproduit, $params, $this->dbconnexion)) {
-                    $validation = true;
+                    $validation = $LG_CPRID;
                     Parameters::buildSuccessMessage("Produit ajouté avec succès.");
                 } else {
                     Parameters::buildErrorMessage("Echec d'ajout du produit à la commande");
@@ -427,29 +433,37 @@ class CommandeManager implements CommandeInterface
     public function updateCommandeProduit($LG_CPRID, $INT_CPRQUANTITY, $OUtilisateur, $token)
     {
         $validation = "";
+        $ArtStk = 0;
+        $OProduit = array();
         $StockManager = new StockManager();
         try {
-            $this->OCommproduit = $this->getCommandeProduitLight($LG_CPRID);
+            $this->OCommproduit = $this->getCommandeProduitLight($LG_CPRID);//
             if ($this->OCommproduit == null) {
                 Parameters::buildErrorMessage("Echec de mise à jour du produit. Référence inexistante sur la commande");
                 return $validation;
             }
-            $ArtStk = (float)$StockManager->getProduct($this->OCommproduit[0]['lg_proid'], $token)->products[0]->ArtStk;
+//            echo "bonjour";
+            $OProduit = $StockManager->getProduct($this->OCommproduit[0]['lg_proid'], $token)->products;
+
+            $ArtStk = $OProduit != null ? (float)$OProduit[0]->ArtStk : $ArtStk;
+//            echo "au revoir===".$ArtStk;
             if ($INT_CPRQUANTITY > $ArtStk) {
-                Parameters::buildErrorMessage("Echec d'augmentation de la quantité du produit. La quantité voulue dépasse le stock");
+                Parameters::buildErrorMessage("Echec de mise à de la quantité du produit. La quantité voulue dépasse le stock");
                 return $validation;
             }
-            $this->updateOrderProduitExternal($LG_CPRID, $this->OCommproduit[0]["lg_commid"], $this->OCommproduit[0]["lg_socextid"], $INT_CPRQUANTITY, $token);
-            //Mise à jour de la commande chez nous
-            $PanierClient = $this->getExternalClientPanier($this->OCommproduit[0]["lg_socextid"], $this->OCommproduit[0]["lg_commid"], $token);
-            $this->updateCommande($this->OCommproduit[0]["lg_commid"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
+
+            if ($this->updateOrderProduitExternal($LG_CPRID, $this->OCommproduit[0]["lg_commid"], $this->OCommproduit[0]["lg_socextid"], $INT_CPRQUANTITY, $token) == "") {
+                Parameters::buildErrorMessage("Echec de mise à de la quantité du produit. Veuillez réessayer svp!");
+                return $validation;
+            }
 
             $params_condition = array("lg_cprid" => $this->OCommproduit[0][0]);
             $params_to_update = array("int_cprquantity" => $INT_CPRQUANTITY, "dt_cprupdated" => get_now(), "lg_utiupdateid" => $OUtilisateur[0][0]);
 
             if ($this->dbconnexion != null) {
                 if (Merge($this->Commproduit, $params_to_update, $params_condition, $this->dbconnexion)) {
-                    $validation = $this->OCommproduit[0]["lg_commid"];
+//                    $validation = $this->OCommproduit[0]["lg_commid"];
+                    $validation = $this->OCommproduit[0]["lg_cprid"];
                     Parameters::buildSuccessMessage("Mise à jour avec succès");
                 } else {
                     Parameters::buildErrorMessage("Echec de mise à jour du produit");
@@ -468,7 +482,7 @@ class CommandeManager implements CommandeInterface
         try {
             // URL de l'API
             $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $LG_COMMID . "/lines/" . $LG_CPRID;
-
+            //echo $url;
             // Headers de la requête
             $headers = array(
                 'Accept: application/json',
@@ -512,6 +526,8 @@ class CommandeManager implements CommandeInterface
                 die('Erreur lors du décodage JSON');
             }
 
+            //var_dump($obj->qty);
+
             $validation = $obj->qty;
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
@@ -533,7 +549,7 @@ class CommandeManager implements CommandeInterface
 
             //Mise à jour de la commande chez nous
             $PanierClient = $this->getExternalClientPanier($this->OCommproduit[0]["lg_socextid"], $this->OCommproduit[0]["lg_commid"], $token);
-            $this->updateCommande($this->OCommproduit[0]["lg_commid"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
+            $this->updateCommande($this->OCommproduit[0]["lg_commid"], !empty($PanierClient->pieces[0]->PcvMtHT) ? $PanierClient->pieces[0]->PcvMtHT : 0, !empty($PanierClient->pieces[0]->PcvMtTTC) ? $PanierClient->pieces[0]->PcvMtTTC : 0);
 
             $params = array("lg_cprid" => $this->OCommproduit[0][0]);
             if (Remove($this->Commproduit, $params, $this->dbconnexion)) {
@@ -813,15 +829,16 @@ class CommandeManager implements CommandeInterface
         return $arraySql;
     }
 
-    public function getExternalClientPanier($LG_AGEID, $LG_COMMID, $token = null)
+    public function getExternalClientPanier($LG_CLIID, $LG_COMMID, $token = null)
     {
         $ConfigurationManager = new ConfigurationManager();
         $arraySql = array();
-        Parameters::buildSuccessMessage("Panier obtenu avec succès.");
+        //Parameters::buildSuccessMessage("Panier obtenu avec succès.");
         try {
-            $value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
-            $LG_CLIID = $value[0]['lg_socextid'];
+            /*$value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
+            $LG_CLIID = $value[0]['lg_socextid'];*/
             $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $LG_COMMID;
+            //echo $url;
             $token = $token ?: $ConfigurationManager->generateToken();
             // Headers de la requête
             $headers = array(
@@ -893,7 +910,7 @@ class CommandeManager implements CommandeInterface
         $validation = array();
         try {
             $value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
-            if(empty($value)){
+            if (empty($value)) {
                 Parameters::buildErrorMessage("Aucun panier ouvert");
                 return $validation;
             }

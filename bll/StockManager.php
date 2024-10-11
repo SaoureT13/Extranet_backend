@@ -26,6 +26,7 @@ class StockManager implements StockInterface
 
     private $Document = "document";
 
+    private $ProduitSubstitution = "produit_substitution";
     private $dbconnexion;
 
     //constructeur de la classe
@@ -92,13 +93,61 @@ class StockManager implements StockInterface
                     WHERE p.lg_proid = :LG_PROID ";
             $res = $this->dbconnexion->prepare($query);
             //exécution de la requête
-            $res->execute(array('LG_PROID' => $LG_PROID));
-            ;
+            $res->execute(array('LG_PROID' => $LG_PROID));;
             while ($rowObj = $res->fetch()) {
                 if (!property_exists($obj, 'str_propic')) {
                     $obj->products[0]->str_propic = $rowObj['str_propic'];
+
                 }
-                $obj->products[0]->gallerie[]['src'] = Parameters::$rootFolderRelative . "produits/" . "$LG_PROID/" . $rowObj['str_docpath'];
+                if (!property_exists($obj, 'str_prospecifications')) {
+                    $obj->products[0]->str_prospecifications = $rowObj['str_prospecifications'];
+                }
+                if (!property_exists($obj, 'str_prodetails')) {
+                    $obj->products[0]->str_prodetails = $rowObj['str_prodetails'];
+                }
+
+                $src = Parameters::$rootFolderRelative . "produits/" . "$LG_PROID/" . $rowObj['str_docpath'];
+                $exists = false;
+                if (property_exists($obj->products[0], 'gallerie')) {
+                    foreach ($obj->products[0]->gallerie as $item) {
+                        if ($item['src'] === $src) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                    if (!$exists) {
+                        $obj->products[0]->gallerie[] = array(
+                            "src" => $src,
+                            "lg_docid" => $rowObj['lg_docid']
+                        );
+                    }
+                } else {
+                    $obj->products[0]->gallerie[] = array(
+                        "src" => $src,
+                        "lg_docid" => $rowObj['lg_docid']
+                    );
+                }
+            }
+            $query = "SELECT *
+                    FROM " . $this->ProduitSubstitution . " ps
+                    LEFT JOIN " . $this->Produit . " p ON ps.lg_prokidid = p.lg_proid
+                    LEFT JOIN document d ON ps.lg_prokidid = d.p_key
+                    WHERE ps.lg_proparentid = :LG_PROID AND ps.str_prosubstatut = :STR_STATUT";
+            $res = $this->dbconnexion->prepare($query);
+            //exécution de la requête
+            $res->execute(array('LG_PROID' => $LG_PROID, 'STR_STATUT' => Parameters::$statut_enable));
+            while ($rowObj = $res->fetch()) {
+                $obj->products[0]->substitutionList[] = array(
+                    "ArtLib" => $rowObj['str_prodescription'] ?: null,
+                    "lg_prosubid" => $rowObj['lg_prosubid'] ?: null,
+                    "ArtID" => $rowObj['lg_prokidid'] ?: null,
+                    "ArtCode" => $rowObj['str_proname'] ?: null,
+                    "ArtCategEnu" => $rowObj['str_procateg'] ?: null,
+                    "ArtFamilleEnu" => $rowObj['str_profamille'] ?: null,
+                    "ArtGammeEnu" => $rowObj['str_progamme'] ?: null,
+                    "ArtLastPA" => $rowObj['int_propriceachat'] ?: null,
+                    "ArtGPicID" => Parameters::$rootFolderRelative . "produits/" . $rowObj['lg_prokidid'] . "/" . $rowObj['str_propic']
+                );
             }
             $arraySql = $obj;
         } catch (Exception $exc) {

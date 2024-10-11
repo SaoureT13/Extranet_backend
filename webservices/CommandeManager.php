@@ -134,9 +134,6 @@ if ($mode == "listCommande") {
         if ($OJson["LG_COMMID"] != "") {
             $CommandeManager->createCommandeProduit($OJson["LG_COMMID"], $OJson["LG_CLIID"], $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token);
             $arrayJson["LG_COMMID"] = $OJson["LG_COMMID"];
-            //Mise à jour de la commande chez nous
-            $PanierClient = $CommandeManager->getExternalClientPanier($OJson["LG_CLIID"], $OJson["LG_COMMID"], $token);
-            $CommandeManager->updateCommande($OJson["LG_COMMID"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
         }
     } else if ($mode == "updateCommproduit") {
         $token = $ConfigurationManager->generateToken();
