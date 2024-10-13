@@ -70,7 +70,7 @@ class Parameters {
 
     public static $SN_PROVECI_ID = "1";
 
-    public static $admin_profileID = '2';
+    public static $admin_profileID = '3';
 
     public static $lst_viewed_product = "0000000000000000000000000000000000000786";
 

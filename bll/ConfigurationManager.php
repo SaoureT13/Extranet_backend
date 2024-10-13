@@ -100,8 +100,8 @@ interface ConfigurationInterface
     public function createClientExternal($LG_SOCID, $OUtilisateur);
 
     //moi
-    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO=null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE,
-                                  $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC=null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur);
+    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO = null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE,
+                                  $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC = null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur);
 
     //moi
     public function dowloadDocuments($Documents, $LG_SOCID, $OUtilisateur);
@@ -118,7 +118,17 @@ interface ConfigurationInterface
     public function markProductAsViewed($LG_PROID, $LG_UTIID);
 
     //moi
-    public function uploadProductPicture($PICTURES, $LG_PROID, $OUtilisateur);
+    public function uploadProductPicture($PICTURES, $SUBSTITUTION_PRODUCTS, $LG_PROID, $OUtilisateur);
+
+    //moi
+    public function createProduitSubstitution($LG_PROPARENTID, $LG_PROKIDID, $OUtilisateur);
+
+    public function deleteProduitSubstitution($LG_PROSUBID);
+
+    public function getProduitSubstitution($LG_PROSUBID);
+
+    public function deleteProductImage($LG_PROID);
+
 }
 
 class ConfigurationManager implements ConfigurationInterface
@@ -155,6 +165,9 @@ class ConfigurationManager implements ConfigurationInterface
     private $Piste_audit = "PISTE_AUDIT";
     private $Produit = "produit";
 
+    private $ProduitSubstitution = "produit_substitution";
+    private $OProduitSubstitution = array();
+
     public function __construct()
     {
         $this->dbconnnexion = DoConnexionPDO(Parameters::$host, Parameters::$user, Parameters::$pass, Parameters::$db, Parameters::$port);
@@ -190,12 +203,11 @@ class ConfigurationManager implements ConfigurationInterface
                 //exécution de la requête
                 $res->execute(array('STR_UTILOGIN' => $STR_UTILOGIN, 'STR_UTIPASSWORD' => $STR_UTIPASSWORD, 'STR_UTISTATUT' => Parameters::$statut_enable, 'LG_SOCID' => Parameters::$SN_PROVECI_ID, 'LG_AGEID' => Parameters::$SN_PROVECI_ID, 'LG_PROID' => Parameters::$admin_profileID));
             } else {
-                $query = "SELECT t.*, p.str_prodescription, p.str_protype, s.lg_socid, s.str_socname, s.str_socdescription, s.str_soclogo, s.dbl_socplafond, s.lg_socextid FROM " . $this->Utilisateur . " t INNER JOIN ". $this->Profile ." p ON t.lg_proid = p.lg_proid INNER JOIN ". $this->Agence ." a ON a.lg_ageid = t.lg_ageid INNER JOIN ". $this->Societe ." s ON s.lg_socid = a.lg_socid 
+                $query = "SELECT t.*, p.str_prodescription, p.str_protype, s.lg_socid, s.str_socname, s.str_socdescription, s.str_soclogo, s.dbl_socplafond, s.lg_socextid FROM " . $this->Utilisateur . " t INNER JOIN " . $this->Profile . " p ON t.lg_proid = p.lg_proid INNER JOIN " . $this->Agence . " a ON a.lg_ageid = t.lg_ageid INNER JOIN " . $this->Societe . " s ON s.lg_socid = a.lg_socid 
             WHERE t.str_utilogin = :STR_UTILOGIN AND 
                 t.str_utipassword = :STR_UTIPASSWORD AND 
                 t.STR_UTISTATUT = :STR_UTISTATUT
-                "
-                        ;
+                ";
                 $res = $this->dbconnnexion->prepare($query);
                 $res->execute(array('STR_UTILOGIN' => $STR_UTILOGIN, 'STR_UTIPASSWORD' => $STR_UTIPASSWORD,
                     'STR_UTISTATUT' => Parameters::$statut_enable));
@@ -217,6 +229,45 @@ class ConfigurationManager implements ConfigurationInterface
             Parameters::buildSuccessMessage("Bienvenu " . $this->OUtilisateur[0]['str_utifirstlastname']);
             $this->OUtilisateur[0]['str_utitoken'] = $STR_UTITOKEN;
             $validation = $this->OUtilisateur;
+        } catch (Exception $exc) {
+            error_log($exc->getTraceAsString());
+        }
+        return $validation;
+    }
+
+    public function createProduitSubstitution($LG_PROPARENTID, $LG_PROKIDID, $OUtilisateur): string
+    {
+        $validation = "";
+        $LG_PROSUBID = generateRandomString(20);
+        try {
+            $params = array("lg_prosubid" => $LG_PROSUBID, "lg_proparentid" => $LG_PROPARENTID, "lg_prokidid" => $LG_PROKIDID, "dt_prosubcreated" => get_now(), "str_prosubstatut" => Parameters::$statut_enable, "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
+            if ($this->dbconnnexion != null) {
+                if (Persist($this->ProduitSubstitution, $params, $this->dbconnnexion)) {
+                    $validation = $params['lg_prosubid'];
+                    Parameters::buildSuccessMessage("Produit de substitution lié avec succès");
+                } else {
+                    Parameters::buildErrorMessage("Echec de l'opération");
+                }
+            }
+        } catch (Exception $exc) {
+            error_log($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de l'opération du document . Veuillez contacter votre administrateur");
+        }
+        return $validation;
+    }
+
+    public function getProduitSubstitution($LG_PROSUBID)
+    {
+        $validation = null;
+        Parameters::buildErrorMessage("Produit de substitution inexistant");
+        try {
+            $params_condition = array("lg_prosubid" => $LG_PROSUBID);
+            $validation = $this->OProduitSubstitution = Find($this->ProduitSubstitution, $params_condition, $this->dbconnnexion);
+            if ($this->OProduitSubstitution == null) {
+                return $validation;
+            }
+            Parameters::buildSuccessMessage("Produit de substitution " . $this->OProduitSubstitution[0]['lg_prosubid'] . " trouvé");
+            $validation = $this->OProduitSubstitution;
         } catch (Exception $exc) {
             error_log($exc->getTraceAsString());
         }
@@ -459,14 +510,14 @@ class ConfigurationManager implements ConfigurationInterface
             return "";
         }
         try {
-            if($STR_SOCLOGO != null){
+            if ($STR_SOCLOGO != null) {
 //                $STR_SOCLOGO = uploadFile(Parameters::$rootFolderAbsolute . "logos/" . $LG_SOCID . "/", $_FILES['STR_SOCLOGO']);
                 $STR_SOCLOGO = uploadFile(Parameters::$rootFolderAbsolute . "logos/", $_FILES['STR_SOCLOGO']);
             }
             $params = array("lg_socid" => $LG_SOCID, "str_socname" => $STR_SOCNAME, "str_socdescription" => $STR_SOCDESCRIPTION, "str_soclogo" => $STR_SOCLOGO, "str_soccode" => $STR_SOCCODE,
                 "str_socstatut" => Parameters::$statut_process, "str_socmail" => $STR_SOCMAIL, "str_socphone" => $STR_SOCPHONE, "dt_soccreated" => get_now(),
                 "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId, "str_socsiret" => $STR_SOCSIRET, "lg_lsttypesocid" => $LG_LSTTYPESOCID[0]['lg_lstid'], "lg_lstpayid" => $LG_LSTPAYID[0]['lg_lstid']);
-            
+
             if ($this->dbconnnexion != null) {//
                 if (Persist($this->Societe, $params, $this->dbconnnexion)) {
                     $validation = $LG_SOCID;
@@ -1132,9 +1183,9 @@ class ConfigurationManager implements ConfigurationInterface
             return "";
         }
         try {
-           if($STR_UTIPIC){
-               $STR_UTIPIC = uploadFile(Parameters::$rootFolderAbsolute . "avatars/" . $LG_UTIID . "/", $STR_UTIPIC);
-           }
+            if ($STR_UTIPIC) {
+                $STR_UTIPIC = uploadFile(Parameters::$rootFolderAbsolute . "avatars/" . $LG_UTIID . "/", $STR_UTIPIC);
+            }
             $params = array("lg_utiid" => $LG_UTIID, "str_utifirstlastname" => $STR_UTIFIRSTLASTNAME, "str_utiphone" => $STR_UTIPHONE, "str_utimail" => $STR_UTIMAIL, "str_utilogin" => $STR_UTILOGIN, "str_utipassword" => $STR_UTIPASSWORD, "str_utipic" => $STR_UTIPIC, "str_utitoken" => generateRandomString(), "str_utionesignalid" => "", "dt_uticreated" => get_now(), "str_utistatut" => Parameters::$statut_process, "lg_ageid" => $LG_AGEID[0]['lg_ageid'],
                 "lg_proid" => $LG_PROID[0]['lg_proid'], "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
 
@@ -1204,12 +1255,12 @@ class ConfigurationManager implements ConfigurationInterface
         $validation = "";
         $LG_DOCID = generateRandomString(20);
         $LG_LSTID = $this->getListe($LG_LSTID);
-        
+
         try {
             if ($LG_LSTID == null) {
-            Parameters::buildErrorMessage("Type de document inexistant");
-            return "";
-        }
+                Parameters::buildErrorMessage("Type de document inexistant");
+                return "";
+            }
             $params = array("lg_docid" => $LG_DOCID, "p_key" => $P_KEY, "str_docpath" => $STR_DOCPATH, "dt_doccreated" => get_now(), "str_docstatut" => Parameters::$statut_enable, "lg_lstid" => $LG_LSTID[0]['lg_lstid'], "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
 
             if ($this->dbconnnexion != null) {
@@ -1239,7 +1290,7 @@ class ConfigurationManager implements ConfigurationInterface
             if ($this->ODocument == null) {
                 return $validation;
             }
-            Parameters::buildSuccessMessage("Document " . $this->ODocument[0]['str_docname'] . " trouvé");
+            Parameters::buildSuccessMessage("Document " . $this->ODocument[0]['lg_docid'] . " trouvé");
             $validation = $this->ODocument;
         } catch (Exception $exc) {
             $exc->getTraceAsString();
@@ -1254,43 +1305,27 @@ class ConfigurationManager implements ConfigurationInterface
         Parameters::buildErrorMessage("Impossible d'obtenir toutes les demandes");
 
         $query = "
-            select distinct uti.str_utifirstlastname,
-                uti.lg_utiid,
-                uti.str_utimail,
-                uti.str_utilogin,
-                uti.str_utiphone,
-                soc.str_socname,
-                soc.str_socsiret,
-                soc.str_soccode,
-                soc.str_socphone,
-                soc.str_socmail,
-                soc.str_socdescription,
-                soc.str_socstatut,
-                soc.lg_socid,
-                soc.dt_soccreated,
-                soc.str_soclogo,
-                soc.lg_socextid,
-                uti.lg_proid,
-                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as chemins,
+            select distinct *,
+                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as gallery,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_lstpaysdescription,
+                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_paysfacturation,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_lsttypesociete
-from utilisateur as uti
-         inner join agence as age on uti.lg_ageid = age.lg_ageid
-         inner join societe as soc on age.lg_socid = soc.lg_socid
-         inner join document as doc on soc.lg_socid = substring_index(doc.lg_docid, '.', 1)
-        inner join liste as lst on lst.lg_lstid = doc.lg_lstid
-where soc.str_socstatut = '".$statut."' 
-  and uti.str_utistatut = '".$statut."'
-  and age.str_agestatut = 'enable'
-    and uti.lg_proid = " . Parameters::$gerantProfileID . "
-group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid
+                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_typesociete
+ from utilisateur as uti
+                     inner join agence as age on uti.lg_ageid = age.lg_ageid
+                     inner join societe as soc on age.lg_socid = soc.lg_socid
+                     inner join document as doc on soc.lg_socid = doc.p_key
+                    inner join liste as lst on lst.lg_lstid = doc.lg_lstid
+            where  uti.str_utistatut = :STR_STATUT 
+                and age.str_agestatut = 'enable'
+              and soc.str_socstatut = :STR_STATUT
+                and uti.lg_proid = 3
+            group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid
             ";
         try {
-            $validation = $this->ODemandes = Finds($query, $this->dbconnnexion, array());
+            $validation = $this->ODemandes = Finds($query, $this->dbconnnexion, array("STR_STATUT" => $statut));
 
 
             if ($this->ODemandes == null) {
@@ -1300,7 +1335,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
             Parameters::buildSuccessMessage("Demandes trouvées");
             $validation = $this->ODemandes;
         } catch (Exception $exc) {
-            error_log($exc->getTraceAsString());
+            var_dump($exc->getTraceAsString());
             Parameters::buildErrorMessage("Impossible d'obtenir toutes les demandes");
         }
         return $validation;
@@ -1310,43 +1345,25 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     {
         $validation = "";
         try {
-            $query = "select distinct uti.str_utifirstlastname,
-                uti.lg_utiid,
-                uti.str_utimail,
-                uti.str_utilogin,
-                uti.str_utiphone,
-                soc.str_socname,
-                soc.str_socsiret,
-                soc.str_soccode,
-                soc.str_socphone,
-                soc.str_socmail,
-                soc.str_socdescription,
-                soc.str_socstatut,
-                soc.lg_socid,
-                soc.dt_soccreated,
-                soc.str_soclogo,
-                soc.lg_socextid,
-                uti.lg_proid,
-                GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as chemins,
+            $query = "select distinct *, GROUP_CONCAT(CONCAT(lst.str_lstvalue, ':', doc.str_docpath) SEPARATOR ', ') as gallery,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_lstpaysdescription,
+                 where soc.lg_lstpayid = lst.lg_lstid and lst.str_lststatut = 'enable')     as str_paysfacturation,
                 (select lst.str_lstdescription
                  from liste as lst
-                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_lsttypesociete
+                 where soc.lg_lsttypesocid = lst.lg_lstid and lst.str_lststatut = 'enable') as str_typesociete
 from utilisateur as uti
-         inner join agence as age on uti.lg_ageid = age.lg_ageid
-         inner join societe as soc on age.lg_socid = soc.lg_socid
-         inner join document as doc on soc.lg_socid = substring_index(doc.lg_docid, '.', 1)
-        inner join liste as lst on lst.lg_lstid = doc.lg_lstid
-where soc.str_socstatut = '".Parameters::$statut_process."'
-  and uti.str_utistatut = '" . Parameters::$statut_process ."'
-  and uti.lg_proid = " . Parameters::$gerantProfileID . "
-  and soc.lg_socid = :LG_SOCID
-group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid";
+                         inner join agence as age on uti.lg_ageid = age.lg_ageid
+                         inner join societe as soc on age.lg_socid = soc.lg_socid
+                         inner join document as doc on soc.lg_socid = doc.p_key
+                        inner join liste as lst on lst.lg_lstid = doc.lg_lstid
+                where soc.lg_socid = :LG_SOCID
+group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_soccode, soc.str_socphone, soc.str_socmail, soc.str_socdescription, soc.str_socstatut, soc.lg_socid
+                ";
             $demandeData = Finds($query, $this->dbconnnexion, ['LG_SOCID' => $LG_SOCID]);
 
             if ($demandeData) {
+                Parameters::buildSuccessMessage("Demande trouvée");
                 $validation = $demandeData;
             }
         } catch (Exception $exc) {
@@ -1360,34 +1377,35 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     {
         $validation = "";
         $error = "";
-        Parameters::buildErrorMessage("Echec de la création du client chez 8sens.");
+        Parameters::buildSuccessMessage("Création du client chez 8sens réussi . ");
         $url = "http://160.120.155.165:8082/v1/clients";
-        $header = array(
-            "Accept: application/json",
-            "api_key: ZghY887665YhGH",
-            "Content-Type: application/json",
-            "token: " . $this->generateToken()
-        );
-
-
-        $demandeData = $this->getClientDemande($LG_SOCID);
-        if ($demandeData == null) {
-            Parameters::buildErrorMessage("Echec de la création du client chez 8sens. Veuillez contacté votre administrateur");
-            return $validation;
-        }
-        $data = array(
-            "clilib" => $demandeData[0][0]['str_socname'],//STR_SOCNAME
-            "clilogin" => $demandeData[0][0]['str_utilogin'],//str_utilogin
-            "moctel" => $demandeData[0][0]['str_socphone'],
-            "mocport" => $demandeData[0][0]['str_socphone'],
-            "mocmail" => $demandeData[0][0]['str_socmail'],
-            "clicategenu" => $demandeData[0][0]['str_lsttypesociete'],
-            "clisiret" => $demandeData[0][0]['str_socsiret'],
-            "pyscode" => $demandeData[0][0]['str_lstpaysdescription'],
-            "prsprenom" => $demandeData[0][0]['str_utifirstlastname'],
-            "prsname" => $demandeData[0][0]['str_utifirstlastname'],
-        );
         try {
+            $header = array(
+                "Accept: application/json",
+                "api_key: ZghY887665YhGH",
+                "Content-Type: application/json",
+                "token: " . $this->generateToken()
+            );
+
+
+            $demandeData = $this->getClientDemande($LG_SOCID);
+            if ($demandeData == null) {
+                Parameters::buildErrorMessage("Echec de la création du client chez 8sens. Veuillez contacté votre administrateur");
+                return $validation;
+            }
+            $data = array(
+                "clilib" => $demandeData[0][0]['str_socname'],//STR_SOCNAME
+                "clilogin" => $demandeData[0][0]['str_utilogin'],//str_utilogin
+                "moctel" => $demandeData[0][0]['str_socphone'],
+                "mocport" => $demandeData[0][0]['str_socphone'],
+                "mocmail" => $demandeData[0][0]['str_socmail'],
+                "clicategenu" => $demandeData[0][0]['str_typesociete'],
+                "clisiret" => $demandeData[0][0]['str_socsiret'],
+                "pyscode" => $demandeData[0][0]['str_paysfacturation'],
+                "prsprenom" => $demandeData[0][0]['str_utifirstlastname'],
+                "prsname" => $demandeData[0][0]['str_utifirstlastname'],
+            );
+
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
@@ -1399,6 +1417,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
             $response = curl_exec($ch);
             $obj = json_decode($response);
             curl_close($ch);
+//            var_dump($obj);
 
             if (!property_exists($obj, 'error')) {
                 $validation = $obj->CliID;
@@ -1423,8 +1442,32 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
         return $validation;
     }
 
+    //moi
+    public function deleteProduitSubstitution($LG_PROSUBID)
+    {
+        $validation = "";
+        try {
+            $this->OProduitSubstitution = $this->getProduitSubstitution($LG_PROSUBID);
+            if ($this->OProduitSubstitution == null) {
+                Parameters::buildErrorMessage("Echec de la mise à jour du produit de substitution, ID inexistant");
+                return $validation;
+            }
+            $params = array("lg_prosubid" => $this->OProduitSubstitution[0]['lg_prosubid']);
+            if (Remove($this->ProduitSubstitution, $params, $this->dbconnnexion)) {
+                $validation = $this->OProduitSubstitution[0]["lg_prosubid"];
+                Parameters::buildSuccessMessage("Suppression du produit avec succès");
+            } else {
+                Parameters::buildErrorMessage("Echec de suppression du produit");
+            }
+        } catch (Exception $exc) {
+            error_log($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de la suppression du produit de substitution" . $this->OProduitSubstitution[0]['lg_prosubid'] . " Veuillez contacter votre administrateur");
+        }
+        return $validation;
+    }
 
-    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO=null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE, $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC=null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur): bool
+
+    public function createDemande($STR_SOCNAME, $STR_SOCDESCRIPTION, $STR_SOCLOGO = null, $STR_SOCMAIL, $STR_SOCPHONE, $STR_SOCSIRET, $LG_LSTTYPESOCID, $LG_LSTPAYID, $STR_SOCCODE, $STR_UTIFIRSTLASTNAME, $STR_UTIMAIL, $STR_UTILOGIN, $STR_UTIPASSWORD, $STR_UTIPIC = null, $STR_UTIPHONE, $LG_PROID, $DOCUMENTS, $OUtilisateur): bool
     {
         $validation = false;
         try {
@@ -1512,7 +1555,7 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     public function markProductAsViewed($LG_PROID, $LG_UTIID)
     {
         $validation = false;
-        if($LG_UTIID == null || $LG_UTIID == ""){
+        if ($LG_UTIID == null || $LG_UTIID == "") {
             Parameters::buildErrorMessage("Utilisateur inexistant");
             return $validation;
         }
@@ -1546,73 +1589,85 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
     }
 
     //moi
-    public function uploadProductPicture($PICTURES, $LG_PROID, $OUtilisateur)
+    public function uploadProductPicture($PICTURES, $SUBSTITUTION_PRODUCTS, $LG_PROID, $OUtilisateur)
     {
         $validation = false;
         Parameters::buildErrorMessage("Échec de l'upload de l'image principale du produit " . $LG_PROID);
         try {
             // Traitement de l'image principale
-            if (isset($PICTURES['name']['main'])) {
-                $mainImage = [
-                    'tmp_name' => $PICTURES['tmp_name']['main'],
-                    'name' => $PICTURES['name']['main'],
-                    'size' => $PICTURES['size']['main'],
-                    'error' => $PICTURES['error']['main']
-                ];
+            if ($PICTURES != null) {
+                // Traitement de l'image principale
+                if (isset($PICTURES['name']['main'])) {
+                    $mainImage = [
+                        'tmp_name' => $PICTURES['tmp_name']['main'],
+                        'name' => $PICTURES['name']['main'],
+                        'size' => $PICTURES['size']['main'],
+                        'error' => $PICTURES['error']['main']
+                    ];
 
-                $mainFileExtension = pathinfo($mainImage['name'], PATHINFO_EXTENSION);
-                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    $mainFileExtension = pathinfo($mainImage['name'], PATHINFO_EXTENSION);
+                    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 
-                if (in_array(strtolower($mainFileExtension), $imageExtensions)) {
-                    // Upload de l'image principale
-                    $STR_PROPIC_MAIN = uploadFile(Parameters::$rootFolderAbsolute . "produits/" . $LG_PROID . "/", $mainImage, true);
+                    if (in_array(strtolower($mainFileExtension), $imageExtensions)) {
+                        // Upload de l'image principale
+                        $STR_PROPIC_MAIN = uploadFile(Parameters::$rootFolderAbsolute . "produits/" . $LG_PROID . "/", $mainImage, true);
 
-                    // Mise à jour de l'image principale dans la base de données
-                    $params_condition = array("lg_proid" => $LG_PROID);
-                    $params_to_update = array(
-                        "str_propic" => $STR_PROPIC_MAIN,
-                        "dt_proupdated" => get_now(),
-                        "lg_utiupdatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId
-                    );
+                        // Mise à jour de l'image principale dans la base de données
+                        $params_condition = array("lg_proid" => $LG_PROID);
+                        $params_to_update = array(
+                            "str_propic" => $STR_PROPIC_MAIN,
+                            "dt_proupdated" => get_now(),
+                            "lg_utiupdatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId
+                        );
 
-                    if ($this->dbconnnexion != null) {
-                        if (Merge($this->Produit, $params_to_update, $params_condition, $this->dbconnnexion)) {
-                            Parameters::buildSuccessMessage("Image principale du produit " . $LG_PROID . " uploadée avec succès");
-                            $validation = true;
-                        } else {
-                            Parameters::buildErrorMessage("Échec de l'upload de l'image principale du produit " . $LG_PROID);
+                        if ($this->dbconnnexion != null) {
+                            if (Merge($this->Produit, $params_to_update, $params_condition, $this->dbconnnexion)) {
+                                Parameters::buildSuccessMessage("Image principale du produit " . $LG_PROID . " uploadée avec succès");
+                                $validation = true;
+                            } else {
+                                Parameters::buildErrorMessage("Échec de l'upload de l'image principale du produit " . $LG_PROID);
+                            }
                         }
                     }
+
+                }
+
+                if (isset($PICTURES['name']['thumbnail']) && is_array($PICTURES['name']['thumbnail'])) {
+                    foreach ($PICTURES['name']['thumbnail'] as $index => $thumbnailName) {
+                        $thumbnailImage = [
+                            'tmp_name' => $PICTURES['tmp_name']['thumbnail'][$index],
+                            'name' => $thumbnailName,
+                            'size' => $PICTURES['size']['thumbnail'][$index],
+                            'error' => $PICTURES['error']['thumbnail'][$index]
+                        ];
+                        $thumbnailFileExtension = pathinfo($thumbnailImage['name'], PATHINFO_EXTENSION);
+                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                        if (in_array(strtolower($thumbnailFileExtension), $imageExtensions)) {
+                            // Upload de la miniature
+                            $STR_PROPIC_THUMBNAIL = uploadFile(Parameters::$rootFolderAbsolute . "produits/" . $LG_PROID . "/", $thumbnailImage, true);
+                            $LG_DOCID = generateRandomNumber(20);
+                            $params = array("lg_docid" => $LG_DOCID, "p_key" => $LG_PROID, "str_docpath" => $STR_PROPIC_THUMBNAIL, "dt_doccreated" => get_now(), "str_docstatut" => Parameters::$statut_enable, "lg_lstid" => 5, "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
+                            if ($this->dbconnnexion != null) {
+                                if (Persist($this->Document, $params, $this->dbconnnexion)) {
+                                    $validation = $params['lg_docid'];
+                                    Parameters::buildSuccessMessage("Document uploadé avec succès");
+                                } else {
+                                    Parameters::buildErrorMessage("Echec de création du document");
+                                }
+                            }
+                        }
+                    }
+                    $validation = true; // Validation après traitement de toutes les miniatures
                 }
             }
 
-            // Traitement des images miniatures
-            if (isset($PICTURES['name']['thumbnail']) && is_array($PICTURES['name']['thumbnail'])) {
-                foreach ($PICTURES['name']['thumbnail'] as $index => $thumbnailName) {
-                    $thumbnailImage = [
-                        'tmp_name' => $PICTURES['tmp_name']['thumbnail'][$index],
-                        'name' => $thumbnailName,
-                        'size' => $PICTURES['size']['thumbnail'][$index],
-                        'error' => $PICTURES['error']['thumbnail'][$index]
-                    ];
-
-                    $thumbnailFileExtension = pathinfo($thumbnailImage['name'], PATHINFO_EXTENSION);
-                    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-                    if (in_array(strtolower($thumbnailFileExtension), $imageExtensions)) {
-                        // Upload de la miniature
-                        $STR_PROPIC_THUMBNAIL = uploadFile(Parameters::$rootFolderAbsolute . "produits/" . $LG_PROID . "/", $thumbnailImage, true);
-
-                        $LG_DOCID = generateRandomNumber(20);
-                        $params = array("lg_docid" => $LG_DOCID,"p_key" => $LG_PROID, "str_docpath" => $STR_PROPIC_THUMBNAIL, "dt_doccreated" => get_now(), "str_docstatut" => Parameters::$statut_enable, "lg_lstid" => 5, "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
-
-                        if ($this->dbconnnexion != null) {
-                            if (Persist($this->Document, $params, $this->dbconnnexion)) {
-                                $validation = $params['lg_docid'];
-                                Parameters::buildSuccessMessage("Document uploadé avec succès");
-                            } else {
-                                Parameters::buildErrorMessage("Echec de création du document");
-                            }
-                        }
+            if (isset($SUBSTITUTION_PRODUCTS)) {
+                $SUBSTITUTION_PRODUCTS = explode(",", $SUBSTITUTION_PRODUCTS);
+                foreach ($SUBSTITUTION_PRODUCTS as $substitutionProduct) {
+                    $LG_PROSUBID = $this->createProduitSubstitution($LG_PROID, trim($substitutionProduct), $OUtilisateur);
+                    if ($LG_PROSUBID == null) {
+                        Parameters::buildErrorMessage("Echec de la création du produit de substitution");
+                        return $validation;
                     }
                 }
                 $validation = true; // Validation après traitement de toutes les miniatures
@@ -1624,4 +1679,28 @@ group by uti.str_utifirstlastname, soc.str_socname, soc.str_socsiret, soc.str_so
 
         return $validation;
     }
+
+    public function deleteProductImage($LG_DOCID)
+    {
+        $validation = "";
+        try {
+            $this->ODocument = $this->getDocument($LG_DOCID);
+            if ($this->ODocument == null) {
+                Parameters::buildErrorMessage("Echec de la suppression de l'image, ID inexistant");
+                return $validation;
+            }
+            $params = array("lg_docid" => $this->ODocument[0]['lg_docid']);
+            if (Remove($this->Document, $params, $this->dbconnnexion)) {
+                $validation = $this->ODocument[0]["lg_docid"];
+                Parameters::buildSuccessMessage("Suppression de l'image avec succès");
+            } else {
+                Parameters::buildErrorMessage("Echec de suppression de l'image");
+            }
+        } catch (Exception $exc) {
+            error_log($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de la suppression de l'image" . $this->ODocument[0]['lg_docid'] . " Veuillez contacter votre administrateur");
+        }
+        return $validation;
+    }
+
 }
