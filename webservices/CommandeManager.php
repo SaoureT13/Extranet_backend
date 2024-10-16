@@ -143,12 +143,14 @@ if ($mode == "listCommande") {
         $token = $ConfigurationManager->generateToken();
         $LG_COMMID = $CommandeManager->deleteCommandeProduit($LG_CPRID, $token);
         $arrayJson["LG_COMMID"] = $LG_COMMID;
-    } else if ($mode == "getClientPanier") {
-        $value = $CommandeManager->getExternalClientPanier($LG_CLIID, $LG_COMMID);
-        if ($value) {
-            $arrayJson["data"] = $value;
-        }
-    } else if ($mode == "updateCommande") {
+    }
+//    else if ($mode == "getClientPanier") {
+//        $value = $CommandeManager->getExternalClientPanier($LG_CLIID, $LG_COMMID);
+//        if ($value) {
+//            $arrayJson["data"] = $value;
+//        }
+//    }
+    else if ($mode == "updateCommande") {
         $value = $CommandeManager->updateCommande($LG_COMMID, "111111", "111111");
         if ($value) {
             $arrayJson["data"] = $value;

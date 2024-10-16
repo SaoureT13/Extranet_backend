@@ -229,43 +229,43 @@ class CommandeManager implements CommandeInterface
 
     public function showAllOrOneCommande($search_value, $LG_CLIID, $start, $limit)
     {
-//        $ConfigurationManager = new ConfigurationManager();
-//        $arraySql = array();
-//        $token = "";
-//        try {
-//            $token = $ConfigurationManager->generateToken();
-//
-//            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts";
-//
-//            $headers = array(
-//                'Accept: application/json',
-//                'Content-Type: application/x-www-form-urlencoded',
-//                "api_key: " . Parameters::$apikey,
-//                "token: " . $token
-//            );
-//
-//            // Initialisation de cURL
-//            $ch = curl_init($url);
-//
-//            // Configuration de cURL
-//            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//
-//            $response = curl_exec($ch);
-//            curl_close($ch);
-//
-//            $obj = json_decode($response);
-//            //var_dump($obj);
-//            // Vérifier si la conversion a réussi
-//            if ($obj === null && json_last_error() !== JSON_ERROR_NONE) {
-//                die('Erreur lors du décodage JSON');
-//            }
-//
-//            $arraySql = $obj;
-//        } catch (Exception $exc) {
-//            error_log($exc->getTraceAsString());
-//        }
-//        return $arraySql;
+        $ConfigurationManager = new ConfigurationManager();
+        $arraySql = array();
+        $token = "";
+        try {
+            $token = $ConfigurationManager->generateToken();
+
+            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts";
+
+            $headers = array(
+                'Accept: application/json',
+                'Content-Type: application/x-www-form-urlencoded',
+                "api_key: " . Parameters::$apikey,
+                "token: " . $token
+            );
+
+            // Initialisation de cURL
+            $ch = curl_init($url);
+
+            // Configuration de cURL
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $obj = json_decode($response);
+            //var_dump($obj);
+            // Vérifier si la conversion a réussi
+            if ($obj === null && json_last_error() !== JSON_ERROR_NONE) {
+                die('Erreur lors du décodage JSON');
+            }
+
+            $arraySql = $obj;
+        } catch (Exception $exc) {
+            error_log($exc->getTraceAsString());
+        }
+        return $arraySql;
     }
 
     public function totalCommande($search_value, $LG_AGEID)
@@ -835,8 +835,8 @@ class CommandeManager implements CommandeInterface
         $arraySql = array();
         //Parameters::buildSuccessMessage("Panier obtenu avec succès.");
         try {
-            /*$value = $this->getLastCommandeByAgence($LG_AGEID, Parameters::$statut_process);
-            $LG_CLIID = $value[0]['lg_socextid'];*/
+            $value = $this->getLastCommandeByAgence($LG_CLIID, Parameters::$statut_process);
+            $LG_CLIID = $value[0]['lg_socextid'];
             $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $LG_COMMID;
             //echo $url;
             $token = $token ?: $ConfigurationManager->generateToken();
@@ -859,6 +859,7 @@ class CommandeManager implements CommandeInterface
 // Exécution de la requête
             $response = curl_exec($ch);
 
+
 // Vérification des erreurs
             if (curl_errno($ch)) {
                 echo 'Erreur cURL : ' . curl_error($ch);
@@ -877,7 +878,7 @@ class CommandeManager implements CommandeInterface
             $arraySql = $obj;
 //            var_dump((int)$arraySql->pieces[0]->PcvMtHT);
         } catch (Exception $exc) {
-            error_log($exc->getTraceAsString());
+            var_dump($exc->getTraceAsString());
         }
 
         return $arraySql;
