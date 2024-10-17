@@ -138,7 +138,7 @@ class StockManager implements StockInterface
             $res->execute(array('LG_PROID' => $LG_PROID, 'STR_STATUT' => Parameters::$statut_enable));
             if ($res->fetch() > 0) {
                 while ($rowObj = $res->fetch()) {
-                    $obj->products[0]->substitutionList[] = array(
+                    $obj->products[0]->products[] = array(
                         "ArtLib" => $rowObj['str_prodescription'] ?: null,
                         "lg_prosubid" => $rowObj['lg_prosubid'] ?: null,
                         "ArtID" => $rowObj['lg_prokidid'] ?: null,
@@ -151,7 +151,7 @@ class StockManager implements StockInterface
                     );
                 }
             } else {
-                $obj->products[0]->substitutionList = [];
+                $obj->products[0]->products = [];
             }
 
             $arraySql = $obj;
