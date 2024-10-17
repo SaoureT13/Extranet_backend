@@ -78,6 +78,7 @@ if (isset($_REQUEST['STR_UTITOKEN'])) {
     $OUtilisateur = $ConfigurationManager->getUtilisateur($STR_UTITOKEN);
 }
 
+
 if ($mode == "listCommande") {
     $arrayJson = $CommandeManager->showAllOrOneCommande($search_value, $LG_CLIID, $start, $length);
 } else if ($mode == "listCommandeproduct") {
@@ -121,6 +122,30 @@ if ($mode == "listCommande") {
     if (isset($_REQUEST['LG_CPRID'])) {
         $LG_CPRID = $_REQUEST['LG_CPRID'];
     }
+
+    if (isset($_REQUEST['STR_LSTDESCRIPTION'])) {
+        $STR_LSTDESCRIPTION = $_REQUEST['STR_LSTDESCRIPTION'];
+    }
+
+    if (isset($_REQUEST['DT_CALLIVBEGIN'])) {
+        $DT_CALLIVBEGIN = $_REQUEST['DT_CALLIVBEGIN'];
+    }
+
+    if (isset($_REQUEST['DT_CALLIVEND'])) {
+        $DT_CALLIVEND = $_REQUEST['DT_CALLIVEND'];
+    }
+    if (isset($_REQUEST['LG_LSTID'])) {
+        $LG_LSTID = $_REQUEST['LG_LSTID'];
+    }
+
+    if (isset($_REQUEST['LG_CALLIVID'])) {
+        $LG_CALLIVID = $_REQUEST['LG_CALLIVID'];
+    }
+
+    if (isset($_REQUEST['$LG_DETLIVID'])) {
+        $LG_DETLIVID = $_REQUEST['$LG_DETLIVID'];
+    }
+
 
     if ($mode == "getTypetransaction") {
         $value = $ConfigurationManager->getTypetransaction($LG_AGEID);
@@ -168,6 +193,22 @@ if ($mode == "listCommande") {
         if ($value) {
             $arrayJson["data"] = $value;
         }
+    }
+    else if ($mode == "addDeliveryPlace") {
+        $CommandeManager->addDeleveryZone($STR_LSTDESCRIPTION, $OUtilisateur);
+    }
+    else if ($mode == "createDeliveryCalendar") {
+        $CommandeManager->createDeliveryCalendar($DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
+    }
+    else if ($mode == "updateDeliveryCalendar") {
+        $CommandeManager->updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
+    }
+    else if ($mode == "createDeliveryDetails") {
+        isset($_REQUEST['CMD_LIST']) ? $CMD_LIST = $_REQUEST['CMD_LIST'] : $CMD_LIST = null;
+        $CommandeManager->createDeliveryDetails($LG_CALLIVID, $CMD_LIST, $OUtilisateur);
+    }
+    else if($mode == "deleteDeleveryDetails"){
+        $CommandeManager->deleteDeleveryDetails($LG_DETLIVID);
     }
 
     $arrayJson["code_statut"] = Parameters::$Message;
