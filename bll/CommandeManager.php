@@ -21,7 +21,7 @@ interface CommandeInterface
 
     public function initCommandeProduit($LG_CPRID, $LG_COMMID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur);
 
-    public function createCommandeProduit($LG_COMMID, $LG_CLIID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token);
+    public function createCommandeProduit($LG_COMMID, $LG_CLIID, $LG_AGEID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token);
 
     public function updateCommandeProduit($LG_CPRID, $INT_CPRQUANTITY, $OUtilisateur, $token);
 
@@ -53,14 +53,29 @@ interface CommandeInterface
     public function getClientPanier($LG_AGEID);
 
     //moi
+    public function getDeliveryPlace();
+
+    //moi
     public function addDeleveryZone($STR_LSTDESCRIPTION, $OUtilisateur);
+
+    //moi
+    public function updateDeliveryPlace($LG_LSTID, $STR_LSTDESCRIPTION, $OUtilisateur);
 
     public function createDeliveryCalendar($DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
 
-    public function updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
+    public function updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $CMD_LIST = null, $OUtilisateur);
 
-    public function deleteDeleveryDetails($LG_DETLIVID);
+    public function deleteDeleveryDetails($LG_COMMID);
 
+    public function getAllOrOneDeliveryCalendar($LG_CALLIVID = null);
+
+    public function deleteDeliveryPlace($LG_LSTID = null, $LIST_LSTID = null);
+
+    public function deleteDeliveryCalendar($LIST_LG_CALLIVID);
+
+    public function closeDeliveryCalendar($LG_CALLIVID);
+
+    public function getCalendarFrontOfiice();
 }
 
 class CommandeManager implements CommandeInterface
@@ -104,7 +119,6 @@ class CommandeManager implements CommandeInterface
 
             // URL de l'API
             $url = Parameters::$urlRootAPI . "/clients/" . $OClient->CliID . "/carts";
-
             // Headers de la requête
             $headers = array(
                 'Accept: application/json',
@@ -290,7 +304,7 @@ class CommandeManager implements CommandeInterface
 
     }
 
-    public function createCommandeProduit($LG_COMMID, $LG_CLIID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token)
+    public function createCommandeProduit($LG_COMMID, $LG_CLIID, $LG_AGEID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token)
     {
         //$ConfigurationManager = new ConfigurationManager();
         $validation = "";
@@ -322,9 +336,7 @@ class CommandeManager implements CommandeInterface
 //                $this->updateCommande($LG_COMMID, $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
             }
 
-            $PanierClient = $this->getExternalClientPanier($LG_CLIID, $LG_COMMID, $token);
-//            var_dump($PanierClient);
-
+            $PanierClient = $this->getExternalClientPanier($LG_AGEID, $LG_COMMID, $token);
             $this->updateCommande($LG_COMMID, $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
@@ -410,7 +422,7 @@ class CommandeManager implements CommandeInterface
     {
         $arraySql = array();
         try {
-            $query = "SELECT t.*, s.lg_socextid FROM " . $this->Commproduit . " t, " . $this->Commande . " c, " . $this->Agence . " a, " . $this->Societe . " s WHERE t.lg_commid = c.lg_commid and c.lg_ageid = a.lg_ageid and a.lg_socid = s.lg_socid and t.lg_cprid = :LG_CPRID";
+            $query = "SELECT t.*, s.lg_socextid, a.lg_ageid FROM " . $this->Commproduit . " t, " . $this->Commande . " c, " . $this->Agence . " a, " . $this->Societe . " s WHERE t.lg_commid = c.lg_commid and c.lg_ageid = a.lg_ageid and a.lg_socid = s.lg_socid and t.lg_cprid = :LG_CPRID";
 //            echo $query;
             $res = $this->dbconnexion->prepare($query);
             //exécution de la requête
@@ -481,6 +493,8 @@ class CommandeManager implements CommandeInterface
                 if (Merge($this->Commproduit, $params_to_update, $params_condition, $this->dbconnexion)) {
 //                    $validation = $this->OCommproduit[0]["lg_commid"];
                     $validation = $this->OCommproduit[0]["lg_cprid"];
+                    $PanierClient = $this->getExternalClientPanier($this->OCommproduit[0]["lg_ageid"], $this->OCommproduit[0]["lg_commid"], $token);
+                    $this->updateCommande($this->OCommproduit[0]["lg_commid"], $PanierClient->pieces[0]->PcvMtHT, $PanierClient->pieces[0]->PcvMtTTC);
                     Parameters::buildSuccessMessage("Mise à jour avec succès");
                 } else {
                     Parameters::buildErrorMessage("Echec de mise à jour du produit");
@@ -679,10 +693,11 @@ class CommandeManager implements CommandeInterface
         $arraySql = array();
         Parameters::buildSuccessMessage("Liste des produits de la commande obtenue avec succès.");
         try {
-            $query = "SELECT * 
+            $query = "SELECT soc.*, age.*, com.*, det.*, com.lg_commid
                     FROM " . $this->Commande . " com 
                     INNER JOIN " . $this->Agence . " age ON com.lg_ageid = age.lg_ageid
                     INNER JOIN " . $this->Societe . " as soc ON soc.lg_socid = age.lg_socid 
+                    LEFT JOIN " . $this->DetailsLivraion . " as det ON det.lg_commid = com.lg_commid
                     WHERE str_commstatut = 'process' 
                     ORDER BY dt_commcreated DESC";
             $res = $this->dbconnexion->prepare($query);
@@ -853,8 +868,13 @@ class CommandeManager implements CommandeInterface
         //Parameters::buildSuccessMessage("Panier obtenu avec succès.");
         try {
             $value = $this->getLastCommandeByAgence($LG_CLIID, Parameters::$statut_process);
+            if ($value == null) {
+                Parameters::buildErrorMessage("Le client n'a pas de panier en cours");
+                return ["erreur" => "Le client n'as pas de panier en cours"];
+            }
             $LG_CLIID = $value[0]['lg_socextid'];
-            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $LG_COMMID;
+            $url = Parameters::$urlRootAPI . "/clients/" . $LG_CLIID . "/carts/" . $value[0]['lg_commid'];
+//            var_dump($url);
             //echo $url;
             $token = $token ?: $ConfigurationManager->generateToken();
             // Headers de la requête
@@ -912,7 +932,7 @@ class CommandeManager implements CommandeInterface
             if ($this->dbconnexion != null) {
                 if (Merge($this->Commande, $params_to_update, $params_condition, $this->dbconnexion)) {
                     $validation = $LG_COMMID;
-                    Parameters::buildSuccessMessage("Mise à jour de la commande effectuée avec succès.");
+                    Parameters::buildSuccessMessage("Mise à jour de la commande effectuée avec succès . ");
                 } else {
                     Parameters::buildErrorMessage("Echec de l'opération");
                 }
@@ -974,18 +994,36 @@ class CommandeManager implements CommandeInterface
         return $validation;
     }
 
+    public function getDeliveryPlace()
+    {
+        $arraySql = array();
+        try {
+            $query = "SELECT * FROM " . $this->Liste . " WHERE lg_tylid = 7";
+            $res = $this->dbconnexion->prepare($query);
+            $res->execute();
+            while ($rowObj = $res->fetch(PDO::FETCH_ASSOC)) {
+                $arraySql[] = $rowObj;
+            }
+            $res->closeCursor();
+            Parameters::buildSuccessMessage("Zones de livraisons recupérées avec succès");
+        } catch (Exception $exc) {
+            var_dump($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de la recuperation des zones de livraisons");
+        }
+        return $arraySql;
+    }
 
     public function addDeleveryZone($STR_LSTDESCRIPTION, $OUtilisateur)
     {
-        $validation = false;
+        $newZone = null;
         try {
             $params = array("lg_lstid" => generateRandomNumber(),
-                "str_lstdescription" => $STR_LSTDESCRIPTION, "str_lststatut" => Parameters::$statut_enable, "dt_lstcreated" => get_now(),
+                "str_lstdescription" => $STR_LSTDESCRIPTION, "str_lstvalue" => $STR_LSTDESCRIPTION, "str_lststatut" => Parameters::$statut_enable, "dt_lstcreated" => get_now(),
                 "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId, "lg_tylid" => "7");
 
             if ($this->dbconnexion !== null) {
                 if (Persist($this->Liste, $params, $this->dbconnexion)) {
-                    $validation = true;
+                    $newZone = $params;
                     Parameters::buildSuccessMessage("Zone de livraison enregistré avec succès");
                 } else {
                     Parameters::buildErrorMessage("Echec de l'insertion de la nouvelle zone, veuillez contacter votre administrateur");
@@ -996,12 +1034,74 @@ class CommandeManager implements CommandeInterface
             Parameters::buildErrorMessage("Echec de l'insertion de la nouvelle zone, veuillez contacter votre administrateur");
         }
 
+        return $newZone;
+    }
+
+    public function updateDeliveryPlace($LG_LSTID, $STR_LSTDESCRIPTION, $OUtilisateur)
+    {
+        $validation = false;
+        try {
+            $params_condition = array("lg_lstid" => $LG_LSTID);
+            $params_to_update = array(
+                "str_lstdescription" => $STR_LSTDESCRIPTION,
+                "str_lstvalue" => $STR_LSTDESCRIPTION,
+                "lg_utiupdatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId,
+                "dt_lstupdated" => get_now()
+            );
+            if ($this->dbconnexion != null) {
+                if (Merge($this->Liste, $params_to_update, $params_condition, $this->dbconnexion)) {
+                    Parameters::buildSuccessMessage("Zone de livraison  mis à jour");
+                    $validation = true;
+                } else {
+                    Parameters::buildErrorMessage("Echec de l'opération, la mise à jour a echoué");
+                }
+            }
+        } catch (Exception $exception) {
+            var_dump($exception->getMessage());
+            Parameters::buildErrorMessage("Impossible de mettre la zone de livraison à jour");
+        }
+
+        return $validation;
+    }
+
+    public function deleteDeliveryPlace($LG_LSTID = null, $LIST_LSTID = null)
+    {
+        $validation = false;
+        try {
+            if ($LIST_LSTID) {
+                $LIST_LSTID = json_decode($LIST_LSTID);
+                foreach ($LIST_LSTID as $id) {
+                    $params = array("lg_lstid" => $id);
+                    if (Remove($this->Liste, $params, $this->dbconnexion)) {
+                        $validation = true;
+                        Parameters::buildSuccessMessage("Suppression de la zone de livraison effectué avec succès");
+                    } else {
+                        Parameters::buildErrorMessage("Echec de suppression de la zone de livraison");
+                    }
+                }
+            }
+
+            if ($LG_LSTID) {
+                $params = array("lg_lstid" => $LG_LSTID);
+                if (Remove($this->Liste, $params, $this->dbconnexion)) {
+                    $validation = true;
+                    Parameters::buildSuccessMessage("Suppression de la zone de livraison effectué avec succès");
+                } else {
+                    Parameters::buildErrorMessage("Echec de suppression de la zone de livraison");
+                }
+            }
+
+        } catch (Exception $exception) {
+            var_dump($exception->getMessage());
+            Parameters::buildErrorMessage("Impossible de supprimer les éléments");
+        }
+
         return $validation;
     }
 
     public function createDeliveryCalendar($DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur)
     {
-        $validation = false;
+        $validation = "";
         try {
             $ConfigurationManager = new ConfigurationManager();
             $this->OListe = $ConfigurationManager->getListe($LG_LSTID);
@@ -1010,10 +1110,10 @@ class CommandeManager implements CommandeInterface
                 return $validation;
             }
             $LG_CALLIVID = generateRandomNumber();
-            $params = array("lg_callivid" => $LG_CALLIVID, "lg_lstzoneliv" => $this->OListe[0]['lg_lstid'], "dt_callivbegin" => $DT_CALLIVBEGIN, "dt_callivend" => $DT_CALLIVEND);
+            $params = array("lg_callivid" => $LG_CALLIVID, "lg_lstzoneliv" => $this->OListe[0]['lg_lstid'], "dt_callivbegin" => $DT_CALLIVBEGIN, "dt_callivend" => $DT_CALLIVEND, "dt_callivcreated" => get_now(), "str_callivstatut" => Parameters::$statut_enable);
             if ($this->dbconnexion != null) {
                 if (Persist($this->CalLivraison, $params, $this->dbconnexion)) {
-                    $validation = true;
+                    $validation = $LG_CALLIVID;
                     Parameters::buildSuccessMessage("Calendrier de livraison créé avec succès");
                 } else {
                     Parameters::buildErrorMessage("Echec de la création du calendrier");
@@ -1025,17 +1125,53 @@ class CommandeManager implements CommandeInterface
             Parameters::buildErrorMessage("Echec de la creation du calendrier, veuillez contactez votre admin");
         }
         return $validation;
-
     }
 
-    public function updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur)
+
+    public function getAllOrOneDeliveryCalendar($LG_CALLIVID = null)
+    {
+        $arraySql = array();
+        Parameters::buildErrorMessage("Echec de la recuperation du calendrier de livraison");
+
+        try {
+            $query = "SELECT cl.lg_callivid,
+                        cl.dt_callivbegin,
+                        cl.dt_callivend,
+                        lst.str_lstdescription as 'zone',
+                        lst.lg_lstid as 'zone_id',
+                        cl.str_callivstatut,
+                        GROUP_CONCAT(dl.lg_commid SEPARATOR ', ') as 'commandes',
+                        COUNT(dl.lg_detlivid) as cmd_count
+                    FROM " . $this->CalLivraison . " cl 
+                    LEFT JOIN " . $this->DetailsLivraion . " dl ON cl.lg_callivid = dl.lg_callivid 
+                    INNER JOIN " . $this->Liste . " lst ON cl.lg_lstzoneliv = lst.lg_lstid
+                    WHERE cl.str_callivstatut = :STR_STATUT OR cl.str_callivstatut = :STR_STATUT2 " . (isset($LG_CALLIVID) ? " AND cl.lg_callivid = :LG_CALLIVID" : "") . "
+                    GROUP BY cl.lg_callivid";
+            $res = $this->dbconnexion->prepare($query);
+            $res->execute(array_filter(["STR_STATUT" => Parameters::$statut_enable, "STR_STATUT2" => Parameters::$statut_closed, "LG_CALLIVID" => $LG_CALLIVID], function ($value) {
+                return $value !== null;
+            }));
+            if ($data = $res->fetchAll(PDO::FETCH_ASSOC)) {
+                Parameters::buildSuccessMessage("Calendrier de livraison recupéré avec succès");
+                $arraySql = $data;
+            }
+
+            $res->closeCursor();
+        } catch (Exception $exc) {
+            var_dump($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de la recuperation du calendrier de livraison");
+        }
+        return $arraySql;
+    }
+
+    public function updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $CMD_LIST = null, $OUtilisateur)
     {
         $validation = false;
         try {
             $ConfigurationManager = new ConfigurationManager();
             $this->OListe = $ConfigurationManager->getListe($LG_LSTID);
             if ($this->OListe == null) {
-                Parameters::buildErrorMessage("La zone de livraison choisie n'existe pas. Veuillez contacter votre administrateur");
+                Parameters::buildErrorMessage("La zone de livraison choisie n'existe pas . Veuillez contacter votre administrateur");
                 return $validation;
             }
             $params_condition = array("lg_callivid" => $LG_CALLIVID);
@@ -1048,10 +1184,31 @@ class CommandeManager implements CommandeInterface
             );
             if ($this->dbconnexion != null) {
                 if (Merge($this->CalLivraison, $params_to_update, $params_condition, $this->dbconnexion)) {
-                    Parameters::buildSuccessMessage("Calendrier de livraison  mis à jour");
+                    Parameters::buildSuccessMessage("Information du calendrier de livraison  mis à jour");
                     $validation = true;
                 } else {
-                    Parameters::buildErrorMessage("Echec de l'opération, la mise à jour a echoué");
+                    Parameters::buildErrorMessage("Echec de l'opération, la mise à jour des informations a echoué");
+                }
+            }
+
+            if (isset($CMD_LIST) && $CMD_LIST != null) {
+                //recuperer les commandes liées au calendrier
+                $response = $this->getAllOrOneDeliveryCalendar($LG_CALLIVID);
+                if ($response) {
+                    $commandes = explode(", ", $response[0]['commandes']);
+                    $CMD_LIST = json_decode($CMD_LIST);
+                    $toDelete = array_diff($commandes, $CMD_LIST);
+                    $toAdd = array_diff($CMD_LIST, $commandes);
+                    if (empty($toDelete) && empty($toAdd)) {
+                        Parameters::buildSuccessMessage("Aucune modification à apporter");
+                        return $validation;
+                    }
+                    foreach ($toDelete as $id) {
+                        $this->deleteDeleveryDetails($id);
+                    }
+                    foreach ($toAdd as $id) {
+                        $this->createDeliveryDetails($LG_CALLIVID, $id, $OUtilisateur);
+                    }
                 }
             }
         } catch (Exception $exception) {
@@ -1061,11 +1218,38 @@ class CommandeManager implements CommandeInterface
         return $validation;
     }
 
+    public function deleteDeliveryCalendar($LIST_LG_CALLIVID)
+    {
+        $validation = false;
+        try {
+            $LIST_LG_CALLIVID = json_decode($LIST_LG_CALLIVID);
+            foreach ($LIST_LG_CALLIVID as $LG_CALLIVID) {
+                $params = array("lg_callivid" => $LG_CALLIVID);
+                if (Remove($this->CalLivraison, $params, $this->dbconnexion)) {
+                    $validation = true;
+                    Parameters::buildSuccessMessage("Suppression du calendrier de livraison effectué avec succès");
+                } else {
+                    Parameters::buildErrorMessage("Echec de suppression du calendrier de livraison");
+                }
+            }
+        } catch (Exception $exc) {
+            var_dump($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de suppression du calendrier de livraison");
+        }
+        return $validation;
+    }
+
     public function createDeliveryDetails($LG_CALLIVID, $CMD_LIST, $OUtilisateur): string
     {
         $validation = false;
         try {
-            $CMD_LIST = explode(",", $CMD_LIST);
+            if (is_string($CMD_LIST)) {
+                $CMD_LIST = json_decode($CMD_LIST);
+            }
+
+            if (!is_array($CMD_LIST)) {
+                $CMD_LIST = [$CMD_LIST];
+            }
             foreach ($CMD_LIST as $commande) {
                 $LG_DETLIVID = generateRandomString(20);
                 $params = array("lg_detlivid" => $LG_DETLIVID, "lg_callivid" => $LG_CALLIVID, "lg_commid" => $commande, "dt_detlivcreated" => get_now(), "str_callivstatut" => Parameters::$statut_enable, "lg_uticreatedid" => $OUtilisateur ? $OUtilisateur[0]['lg_utiid'] : Parameters::$defaultAdminId);
@@ -1074,7 +1258,7 @@ class CommandeManager implements CommandeInterface
                         $validation = $params['lg_detlivid'];
                         Parameters::buildSuccessMessage("Commande lié au calendrier");
                     } else {
-                        Parameters::buildErrorMessage("Echec de l'opération. La commande avec l'id " . $commande . " n'existe pas.");
+                        Parameters::buildErrorMessage("Echec de l'opération . La commande avec l'id " . $commande . " n'existe pas . ");
                         return $validation;
                     }
                 }
@@ -1087,11 +1271,11 @@ class CommandeManager implements CommandeInterface
         return $validation;
     }
 
-    public function deleteDeleveryDetails($LG_DETLIVID)
+    public function deleteDeleveryDetails($LG_COMMID)
     {
         $validation = false;
         try {
-            $params = array("lg_detlivid" => $LG_DETLIVID);
+            $params = array("lg_commid" => $LG_COMMID);
             if (Remove($this->DetailsLivraion, $params, $this->dbconnexion)) {
                 $validation = true;
                 Parameters::buildSuccessMessage("Suppression de la commande sur le calendrier effectué avec succès");
@@ -1103,6 +1287,71 @@ class CommandeManager implements CommandeInterface
             Parameters::buildErrorMessage("Echec de suppression de la commande. Veuillez contacter votre administrateur");
         }
         return $validation;
+    }
+
+    public function closeDeliveryCalendar($LG_CALLIVID)
+    {
+        $validation = false;
+        try {
+            $params_condition = array("lg_callivid" => $LG_CALLIVID);
+            $params_to_update = array("str_callivstatut" => Parameters::$statut_closed, "dt_callivupdated" => get_now());
+            if ($this->dbconnexion != null) {
+                if (Merge($this->CalLivraison, $params_to_update, $params_condition, $this->dbconnexion)) {
+                    $validation = true;
+                    Parameters::buildSuccessMessage("Calendrier de livraison fermé avec succès");
+                } else {
+                    Parameters::buildErrorMessage("Echec de l'opération, la fermeture du calendrier a echoué");
+                }
+            }
+        } catch (Exception $exc) {
+            var_dump($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de la fermeture du calendrier de livraison");
+        }
+        return $validation;
+    }
+
+
+    public function getCalendarFrontOfiice()
+    {
+        $arraySql = array();
+        $array_place = array();
+        $array_delivery = array();
+        try {
+            $deliveryPlace = $this->getDeliveryPlace();
+            $calendar = $this->getAllOrOneDeliveryCalendar();
+
+            foreach ($deliveryPlace as $place) {
+                foreach ($calendar as $cal) {
+                    if ($place['lg_lstid'] == $cal['zone_id']) {
+                        $cal['zone'] = $place['str_lstdescription'];
+                        $array_delivery[$place['str_lstdescription']] = [
+                            "lg_callivid" => $cal["lg_callivid"],
+                            "date" => $cal["dt_callivbegin"],
+                            "deliveryDate" => $cal["dt_callivend"],
+                        ];
+                    }
+                }
+            }
+
+
+            foreach ($deliveryPlace as $place) {
+                $array_place[] = [
+                    "lg_lstid" => $place['lg_lstid'],
+                    "str_lstdescription" => $place['str_lstdescription'],
+                ];
+            }
+
+            $arraySql[] = $array_delivery;
+            $arraySql[] = $array_place;
+//            foreach ($calendar as $cal) {
+//                $cal['zone'] = $deliveryPlace[array_search($cal['zone_id'], array_column($deliveryPlace, 'lg_lstid'))]['str_lstdescription'];
+//                $arraySql[] = $cal;
+//            }
+        } catch (Exception $exc) {
+            var_dump($exc->getTraceAsString());
+            Parameters::buildErrorMessage("Echec de la recuperation du calendrier de livraison");
+        }
+        return $arraySql;
     }
 
 }

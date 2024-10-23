@@ -97,6 +97,12 @@ if ($mode == "listCommande") {
     }
 } else if ($mode == "getExternalClientPanier") {
     $arrayJson = $CommandeManager->getExternalClientPanier($LG_AGEID, $LG_COMMID);
+} else if ($mode == "getAllOrOneDeliveryCalendar") {
+    isset($_REQUEST['LG_CALLIVID']) ? $LG_CALLIVID = $_REQUEST['LG_CALLIVID'] : $LG_CALLIVID = null;
+    $value = $CommandeManager->getAllOrOneDeliveryCalendar($LG_CALLIVID);
+    if ($value) {
+        $arrayJson["data"] = $value;
+    }
 } else {
 
     if (isset($_REQUEST['STR_COMMNAME'])) {
@@ -146,6 +152,10 @@ if ($mode == "listCommande") {
         $LG_DETLIVID = $_REQUEST['$LG_DETLIVID'];
     }
 
+    if (isset($_REQUEST['LIST_LG_CALLIVID'])) {
+        $LIST_LG_CALLIVID = $_REQUEST['LIST_LG_CALLIVID'];
+    }
+
 
     if ($mode == "getTypetransaction") {
         $value = $ConfigurationManager->getTypetransaction($LG_AGEID);
@@ -157,7 +167,7 @@ if ($mode == "listCommande") {
         $token = $ConfigurationManager->generateToken();
         $OJson = $CommandeManager->createCommande($LG_AGEID, $STR_COMMNAME, $STR_COMMADRESSE, $STR_LIVADRESSE, $OUtilisateur, $token);
         if ($OJson["LG_COMMID"] != "") {
-            $CommandeManager->createCommandeProduit($OJson["LG_COMMID"], $OJson["LG_CLIID"], $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token);
+            $CommandeManager->createCommandeProduit($OJson["LG_COMMID"], $OJson["LG_CLIID"], $LG_AGEID, $LG_PROID, $INT_CPRQUANTITY, $OUtilisateur, $token);
             $arrayJson["LG_COMMID"] = $OJson["LG_COMMID"];
         }
     } else if ($mode == "updateCommproduit") {
@@ -168,20 +178,13 @@ if ($mode == "listCommande") {
         $token = $ConfigurationManager->generateToken();
         $LG_COMMID = $CommandeManager->deleteCommandeProduit($LG_CPRID, $token);
         $arrayJson["LG_COMMID"] = $LG_COMMID;
-    }
-//    else if ($mode == "getClientPanier") {
-//        $value = $CommandeManager->getExternalClientPanier($LG_CLIID, $LG_COMMID);
-//        if ($value) {
-//            $arrayJson["data"] = $value;
-//        }
-//    }
-    else if ($mode == "updateCommande") {
+    } else if ($mode == "updateCommande") {
         $value = $CommandeManager->updateCommande($LG_COMMID, "111111", "111111");
         if ($value) {
             $arrayJson["data"] = $value;
         }
     } //moi
-    else if ($mode == "listeCommande") {
+    else if ($mode == "listeCommandeLocal") {
         $value = $CommandeManager->showAllCommandeproduit();
         if ($value) {
             $arrayJson["data"] = $value;
@@ -193,22 +196,48 @@ if ($mode == "listCommande") {
         if ($value) {
             $arrayJson["data"] = $value;
         }
-    }
-    else if ($mode == "addDeliveryPlace") {
-        $CommandeManager->addDeleveryZone($STR_LSTDESCRIPTION, $OUtilisateur);
-    }
-    else if ($mode == "createDeliveryCalendar") {
-        $CommandeManager->createDeliveryCalendar($DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
-    }
-    else if ($mode == "updateDeliveryCalendar") {
-        $CommandeManager->updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
-    }
-    else if ($mode == "createDeliveryDetails") {
+    } else if ($mode == "addDeliveryPlace") {
+        $value = $CommandeManager->addDeleveryZone($STR_LSTDESCRIPTION, $OUtilisateur);
+        if ($value) {
+            $arrayJson["data"] = $value;
+        }
+    } else if ($mode == "getDeliveryPlace") {
+        $value = $CommandeManager->getDeliveryPlace();
+        if ($value) {
+            $arrayJson["data"] = $value;
+        }
+    } else if ($mode == "updateDeliveryPlace") {
+        $value = $CommandeManager->updateDeliveryPlace($LG_LSTID, $STR_LSTDESCRIPTION, $OUtilisateur);
+        if ($value) {
+            $arrayJson["data"] = $value;
+        }
+    } else if ($mode == "deleteDeliveryPlace") {
+        isset($_REQUEST['LG_LSTID']) ? $LG_LSTID = $_REQUEST['LG_LSTID'] : $LG_LSTID = null;
+        isset($_REQUEST['LIST_LSTID']) ? $LIST_LSTID = $_REQUEST['LIST_LSTID'] : $LIST_LSTID = null;
+        $value = $CommandeManager->deleteDeliveryPlace($LG_LSTID, $LIST_LSTID);
+        if ($value) {
+            $arrayJson["data"] = $value;
+        }
+    } else if ($mode == "createDeliveryCalendar") {
+        $LG_CALLIVID = $CommandeManager->createDeliveryCalendar($DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $OUtilisateur);
+        if (isset($_REQUEST['CMD_LIST'])) {
+            $CMD_LIST = $_REQUEST['CMD_LIST'];
+            $CommandeManager->createDeliveryDetails($LG_CALLIVID, $CMD_LIST, $OUtilisateur);
+        }
+    } else if ($mode == "updateDeliveryCalendar") {
+        isset($_REQUEST['CMD_LIST']) ? $CMD_LIST = $_REQUEST['CMD_LIST'] : $CMD_LIST = null;
+        $CommandeManager->updateDeliveryCalendar($LG_CALLIVID, $DT_CALLIVBEGIN, $DT_CALLIVEND, $LG_LSTID, $CMD_LIST, $OUtilisateur);
+    } else if ($mode == "deleteDeliveryCalendar") {
+        $CommandeManager->deleteDeliveryCalendar($LIST_LG_CALLIVID);
+    } else if ($mode == "closeDeliveryCalendar") {
+        $arrayJson = $CommandeManager->closeDeliveryCalendar($LG_CALLIVID);
+    } else if ($mode == "createDeliveryDetails") {
         isset($_REQUEST['CMD_LIST']) ? $CMD_LIST = $_REQUEST['CMD_LIST'] : $CMD_LIST = null;
         $CommandeManager->createDeliveryDetails($LG_CALLIVID, $CMD_LIST, $OUtilisateur);
-    }
-    else if($mode == "deleteDeleveryDetails"){
+    } else if ($mode == "deleteDeleveryDetails") {
         $CommandeManager->deleteDeleveryDetails($LG_DETLIVID);
+    } else if ($mode == "getCalendarFrontOfiice") {
+        $arrayJson = $CommandeManager->getCalendarFrontOfiice();
     }
 
     $arrayJson["code_statut"] = Parameters::$Message;
